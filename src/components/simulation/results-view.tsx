@@ -20,7 +20,9 @@ import {
   CandidateRadar,
   SeatsChart,
 } from "@/components/charts/election-charts";
+import { TrendTimeline } from "@/components/charts/TrendTimeline";
 import { ItalyMap } from "@/components/map/italy-map";
+import { ComuneTable } from "@/components/simulation/ComuneTable";
 import { publishSimulation } from "@/actions/simulate";
 import { formatPercent } from "@/lib/utils";
 import { getParty } from "@/lib/electoral/parties";
@@ -65,6 +67,9 @@ export function ResultsView({ data }: { data: SimulationViewData }) {
     (r) => r.partySlug === data.candidate.partySlug
   );
   const [shareSlug, setShareSlug] = useState(data.shareSlug);
+  const uiScenario = data.scenarios?.uiScenario;
+  const funAnalysis = data.scenarios?.funAnalysis;
+  const isFun = uiScenario?.uiMode === "fun" || uiScenario?.chaosMode;
 
   async function onShare() {
     if (shareSlug) {
@@ -95,6 +100,7 @@ export function ResultsView({ data }: { data: SimulationViewData }) {
         <div className="space-y-3">
           <p className="text-xs uppercase tracking-[0.25em] text-[var(--muted)]">
             Simulazione nazionale · {new Date(data.createdAt).toLocaleString("it-IT")}
+            {isFun ? " · modalità Amici" : " · modalità Analista"}
           </p>
           <h1 className="font-[family-name:var(--font-display)] text-4xl leading-tight text-[var(--it-blue)] sm:text-5xl">
             {data.candidate.firstName}{" "}
@@ -234,9 +240,14 @@ export function ResultsView({ data }: { data: SimulationViewData }) {
         <TabsList className="flex h-auto w-full flex-wrap justify-start gap-1">
           <TabsTrigger value="nazionale">Nazionale</TabsTrigger>
           <TabsTrigger value="mappa">Mappa</TabsTrigger>
+          <TabsTrigger value="territori">Province</TabsTrigger>
+          <TabsTrigger value="trend">Trend</TabsTrigger>
           <TabsTrigger value="seggi">Seggi & coalizioni</TabsTrigger>
           <TabsTrigger value="candidato">Profilo</TabsTrigger>
           <TabsTrigger value="analisi">Analisi IA</TabsTrigger>
+          {funAnalysis ? (
+            <TabsTrigger value="bar">Analisi da bar</TabsTrigger>
+          ) : null}
         </TabsList>
 
         <TabsContent value="nazionale" className="space-y-6">
@@ -324,6 +335,9 @@ export function ResultsView({ data }: { data: SimulationViewData }) {
                 <CardTitle>Distribuzione geografica</CardTitle>
                 <CardDescription>
                   Province colorate per partito vincente locale
+                  {uiScenario?.useRosatellum
+                    ? " · seggi nazionali con Rosatellum"
+                    : ""}
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-3 max-h-[480px] overflow-y-auto">
@@ -347,12 +361,52 @@ export function ResultsView({ data }: { data: SimulationViewData }) {
           </div>
         </TabsContent>
 
+        <TabsContent value="territori">
+          <Card>
+            <CardHeader>
+              <CardTitle>Dettaglio territoriale</CardTitle>
+              <CardDescription>
+                Vincitore, margine, affluenza e top partiti per provincia
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <ComuneTable
+                data={data.provincialMap}
+                highlightSlug={data.candidate.partySlug}
+              />
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="trend">
+          <Card>
+            <CardHeader>
+              <CardTitle>Trend e scenari</CardTitle>
+              <CardDescription>
+                Serie storica + proiezione Monte Carlo (p10 / medio / p90)
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <TrendTimeline
+                nationalResults={data.nationalResults}
+                scenarios={data.scenarios}
+                leaderSlug={data.candidate.partySlug}
+              />
+            </CardContent>
+          </Card>
+        </TabsContent>
+
         <TabsContent value="seggi" className="space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle>Allocazione seggi (modello semplificato)</CardTitle>
+              <CardTitle>Allocazione seggi</CardTitle>
               <CardDescription>
-                Proporzionale con soglia — non replica legale completa del Rosatellum
+                {uiScenario?.useRosatellum !== false
+                  ? "Rosatellum semplificato: uninominale FPTP + proporzionale Hare (soglie configurabili)"
+                  : "Proporzionale con soglia — modello semplificato"}
+                {uiScenario
+                  ? ` · soglia ${uiScenario.partyThreshold}% · affluenza ${uiScenario.turnout}%`
+                  : ""}
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -433,12 +487,33 @@ export function ResultsView({ data }: { data: SimulationViewData }) {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <article className="prose-analysis max-w-none space-y-3 text-sm leading-relaxed whitespace-pre-wrap">
+              <article
+                className="prose-analysis max-w-none space-y-3 text-sm leading-relaxed whitespace-pre-wrap"
+                id="result"
+              >
                 {data.analysis}
               </article>
             </CardContent>
           </Card>
         </TabsContent>
+
+        {funAnalysis ? (
+          <TabsContent value="bar">
+            <Card id="fun-analysis">
+              <CardHeader>
+                <CardTitle>Analisi da bar</CardTitle>
+                <CardDescription>
+                  Stesso motore, tono da bancone — i numeri restano quelli del modello
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <article className="max-w-none space-y-4 text-sm leading-relaxed whitespace-pre-wrap text-[var(--foreground)]">
+                  {funAnalysis}
+                </article>
+              </CardContent>
+            </Card>
+          </TabsContent>
+        ) : null}
       </Tabs>
     </div>
   );

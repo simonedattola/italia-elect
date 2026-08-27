@@ -17,6 +17,9 @@
     "test:recognition": "tsx scripts/test-recognition.ts",
     "test:compatibility": "tsx scripts/test-compatibility.ts",
     "test:harvester": "tsx scripts/test-harvester.ts",
+    "test:context": "tsx src/lib/context/__tests__/weightsEngine.test.ts",
+    "test:microsim": "tsx src/lib/microsim/tests/simulationEngine.test.ts",
+    "test:hybrid": "tsx src/lib/microsim/__tests__/hybridBacktest.test.ts",
     "harvest:elections": "tsx scripts/harvest-elections.ts",
     "harvest:istat": "tsx scripts/harvest-istat.ts"
   },

@@ -10,7 +10,7 @@ export const metadata: Metadata = {
 export default function SimulaPage() {
   return (
     <div className="hero-atmosphere">
-      <div className="mx-auto max-w-2xl px-4 py-12 sm:px-6 sm:py-16">
+      <div className="mx-auto max-w-3xl px-4 py-12 sm:px-6 sm:py-16">
         <SimulationForm />
       </div>
     </div>
