@@ -16,7 +16,7 @@ export default async function ConfrontoPage() {
         Confronto
       </h1>
       <p className="mb-8 text-[var(--muted)]">
-        Seleziona da 2 a 6 candidati già simulati
+        Seleziona da 2 a 6 candidati già simulati — scenari Analista o Amici
       </p>
       <ComparePicker simulations={sims} />
     </div>

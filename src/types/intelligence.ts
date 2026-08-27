@@ -103,6 +103,10 @@ export interface SimulationScenarios {
   leaderBest: number;
   leaderWorst: number;
   leaderMean: number;
+  /** Snapshot Scenario Editor (Fase 5) */
+  uiScenario?: import("@/types/scenario").UiScenarioConfig;
+  /** Analisi ironica per modalità Amici */
+  funAnalysis?: string;
 }
 
 export interface ContextBundle {

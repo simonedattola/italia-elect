@@ -13,6 +13,11 @@ import {
   createSimulation,
   type ConfirmationOption,
 } from "@/actions/simulate";
+import { ScenarioEditor } from "@/components/simulation/ScenarioEditor";
+import {
+  DEFAULT_UI_SCENARIO,
+  type UiScenarioConfig,
+} from "@/types/scenario";
 
 export function SimulationForm() {
   const router = useRouter();
@@ -25,6 +30,7 @@ export function SimulationForm() {
     program: "",
     photoUrl: "",
   });
+  const [scenario, setScenario] = useState<UiScenarioConfig>(DEFAULT_UI_SCENARIO);
   const [confirmation, setConfirmation] = useState<{
     prompt: string;
     options: ConfirmationOption[];
@@ -46,6 +52,7 @@ export function SimulationForm() {
         program: form.program || undefined,
         confirmedWikidataId: extra?.confirmedWikidataId,
         proceedAsUnknown: extra?.proceedAsUnknown,
+        scenario,
       });
       if (!res.ok) {
         if (res.needsConfirmation && res.options?.length) {
@@ -59,7 +66,11 @@ export function SimulationForm() {
         toast.error(res.error);
         return;
       }
-      toast.success("Simulazione completata");
+      toast.success(
+        scenario.uiMode === "fun"
+          ? "Simulazione Amici completata"
+          : "Simulazione analista completata",
+      );
       router.push(`/risultati/${res.slug}`);
     });
   }
@@ -74,6 +85,7 @@ export function SimulationForm() {
       initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.45 }}
+      className="space-y-6"
     >
       <Card className="border-[var(--border)] shadow-md">
         <CardHeader>
@@ -81,18 +93,17 @@ export function SimulationForm() {
             Nuova simulazione
           </CardTitle>
           <CardDescription>
-            Il motore combina dati storici, sondaggi, economia, eventi e profilo
-            candidato con pesi dinamici. Entity resolution identifica
-            automaticamente le figure pubbliche italiane.
+            Motore ibrido MRP+ABM con Scenario Editor: prior realistici e shock
+            comportamentali. Entity resolution sulle figure pubbliche.
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <form onSubmit={onSubmit} className="space-y-5">
+          <form onSubmit={onSubmit} className="space-y-5" id="simulate-form">
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-2">
-                <Label htmlFor="firstName">Nome</Label>
+                <Label htmlFor="candidate-name">Nome</Label>
                 <Input
-                  id="firstName"
+                  id="candidate-name"
                   required
                   value={form.firstName}
                   onChange={(e) => update("firstName", e.target.value)}
@@ -161,6 +172,8 @@ export function SimulationForm() {
               />
             </div>
 
+            <ScenarioEditor value={scenario} onChange={setScenario} />
+
             {confirmation && (
               <div className="space-y-3 rounded-lg border border-[var(--border)] bg-[var(--surface)] p-4">
                 <p className="text-sm font-medium text-[var(--foreground)]">
@@ -201,17 +214,24 @@ export function SimulationForm() {
 
             <div className="rounded-lg border border-[var(--border)] bg-[var(--surface)] p-3 text-xs text-[var(--muted)]">
               Italia Elect è un{" "}
-              <strong className="text-[var(--foreground)]">simulatore statistico</strong>,
-              non uno strumento di previsione certa. Non attribuisce fatti non
-              verificati ai candidati.
+              <strong className="text-[var(--foreground)]">simulatore statistico</strong>
+              {" "}ibrido MRP+ABM, non uno strumento di previsione certa.
             </div>
 
-            <Button type="submit" size="lg" className="w-full sm:w-auto" disabled={pending}>
+            <Button
+              type="submit"
+              size="lg"
+              className="w-full sm:w-auto"
+              disabled={pending}
+              id="simulate"
+            >
               {pending ? (
                 <>
                   <Loader2 className="h-4 w-4 animate-spin" />
                   Elaborazione Monte Carlo…
                 </>
+              ) : scenario.uiMode === "fun" ? (
+                "Simula (modalità Amici)"
               ) : (
                 "Avvia simulazione nazionale"
               )}

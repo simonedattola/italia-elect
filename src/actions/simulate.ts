@@ -18,6 +18,9 @@ import {
   toJson,
 } from "@/lib/json";
 import type { InfluenceFactor, SimulationScenarios } from "@/types/intelligence";
+import type { UiScenarioConfig } from "@/types/scenario";
+import { DEFAULT_UI_SCENARIO } from "@/types/scenario";
+import { buildFunAnalysis } from "@/lib/ai/funAnalysis";
 
 const candidateSchema = z.object({
   firstName: z.string().min(1).max(80),
@@ -32,6 +35,18 @@ const candidateSchema = z.object({
   confirmedWikidataId: z.string().max(32).optional(),
   /** Procedi come sconosciuto nonostante omonimi ambigui */
   proceedAsUnknown: z.boolean().optional(),
+  scenario: z
+    .object({
+      uiMode: z.enum(["analyst", "fun"]).optional(),
+      chaosMode: z.boolean().optional(),
+      partyVoteAdjustments: z.record(z.string(), z.number()).optional(),
+      activeCoalitions: z.record(z.string(), z.boolean()).optional(),
+      partyThreshold: z.number().min(0).max(10).optional(),
+      turnout: z.number().min(50).max(90).optional(),
+      useRosatellum: z.boolean().optional(),
+      seed: z.number().optional(),
+    })
+    .optional(),
 });
 
 export type ConfirmationOption = {
@@ -123,6 +138,19 @@ export async function createSimulation(
 
   const data = parsed.data;
   const seed = Math.floor(Math.random() * 1e9);
+  const uiScenario: UiScenarioConfig = {
+    ...DEFAULT_UI_SCENARIO,
+    ...(data.scenario as Partial<UiScenarioConfig> | undefined),
+    partyVoteAdjustments: {
+      ...DEFAULT_UI_SCENARIO.partyVoteAdjustments,
+      ...(data.scenario?.partyVoteAdjustments ?? {}),
+    },
+    activeCoalitions: {
+      ...DEFAULT_UI_SCENARIO.activeCoalitions,
+      ...(data.scenario?.activeCoalitions ?? {}),
+    },
+  };
+  if (uiScenario.uiMode === "fun") uiScenario.chaosMode = true;
 
   try {
     // PRIORITÀ: Entity Resolution PRIMA della simulazione
@@ -189,6 +217,7 @@ export async function createSimulation(
         photoUrl: data.photoUrl || undefined,
       },
       seed,
+      scenario: uiScenario,
       recognition: {
         ...identified,
         category: publicFigureForEngine.publicFigure
@@ -210,6 +239,12 @@ export async function createSimulation(
     );
 
     const analysis = await generateAIAnalysis(data, output, output.profile);
+    const funAnalysis = buildFunAnalysis(data, output, uiScenario);
+    const scenariosPayload: SimulationScenarios = {
+      ...output.scenarios,
+      uiScenario,
+      funAnalysis,
+    };
 
     const candidate = await prisma.candidate.create({
       data: {
@@ -242,7 +277,7 @@ export async function createSimulation(
         analysis,
         modelMeta: toJson(output.modelMeta),
         influenceFactors: toJson(output.influenceFactors),
-        scenarios: toJson(output.scenarios),
+        scenarios: toJson(scenariosPayload),
       },
     });
 
