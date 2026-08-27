@@ -112,13 +112,15 @@ describe("Micro-Simulatore", () => {
       scenario: { seed: 42, scenarioType: "stability" },
       weights,
       sampleSize: 2000,
+      mode: "hybrid",
+      targetDate: new Date("2022-09-25"),
     });
 
     const fdiSlug = normalizePartySlug("fdi");
     const fdiPct = result.partyVotes[fdiSlug] ?? 0;
 
     expect(fdiPct).toBeGreaterThan(20);
-    expect(fdiPct).toBeLessThan(45);
+    expect(fdiPct).toBeLessThan(40);
     expect(result.winner).toBe(fdiSlug);
     expect(result.metadata.simulationTime).toBeLessThan(15000);
     expect(result.comuneName.toUpperCase().includes("ROMA")).toBeTruthy();
@@ -204,9 +206,11 @@ async function main() {
     scenario: { seed: 42, scenarioType: "stability" },
     weights,
     sampleSize: 2000,
+    mode: "hybrid",
+    targetDate: new Date("2022-09-25"),
   });
 
-  console.log("\nEsempio Roma · stability · seed=42 · n=2000");
+  console.log("\nEsempio Roma · hybrid stability · seed=42 · n=2000");
   console.log(
     `  winner=${example.winner} margin=${example.winnerMargin.toFixed(2)}pp time=${example.metadata.simulationTime.toFixed(0)}ms`,
   );

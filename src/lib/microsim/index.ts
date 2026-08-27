@@ -10,6 +10,7 @@ export {
 export { applyInfluence } from "./influenceEngine";
 export {
   simulateComune,
+  simulateComuneWithRosatellum,
   computeSeats,
   computeConfidenceInterval,
   MICROSIM_VERSION,

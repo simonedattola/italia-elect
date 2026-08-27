@@ -1,5 +1,6 @@
 /**
- * Applica fattori contestuali (Fase 2) + compatibilità non lineare al singolo elettore.
+ * Shock ABM sul prior MRP (Fase 4 hybrid).
+ * Gli shock sono marginali: il prior resta l'ancora; chaosMode amplifica.
  */
 
 import type { WeightedFactors } from "../context/types";
@@ -40,17 +41,13 @@ function renormalize(prefs: Record<string, number>) {
   for (const k of Object.keys(prefs)) prefs[k] = prefs[k]! / total;
 }
 
-function bump(
-  prefs: Record<string, number>,
-  slug: string,
-  delta: number,
-) {
+function bump(prefs: Record<string, number>, slug: string, delta: number) {
   if (!(slug in prefs)) prefs[slug] = 0;
   prefs[slug] = Math.max(0, prefs[slug]! + delta);
 }
 
 /**
- * Applica i fattori contestuali a un elettore, restituendo il voto modificato.
+ * Applica shock contestuali + compatibilità sul prior statistico.
  */
 export function applyInfluence(
   elector: ElectorProfile,
@@ -58,86 +55,90 @@ export function applyInfluence(
   candidate: MicrosimCandidate,
   scenario: ScenarioOverride,
   rng: Rng = Math.random,
-): { partyVote: string; probability: number; preferences: Record<string, number> } {
+): {
+  partyVote: string;
+  probability: number;
+  preferences: Record<string, number>;
+  compatibility: number;
+} {
   const candidateParty = normalizePartySlug(candidate.partySlug);
   const preferences: Record<string, number> = { ...elector.partyAffinity };
+  const conf = elector.statisticalConfidence ?? 0.5;
 
-  // Assicura tutte le chiavi PARTIES
   for (const p of PARTIES) {
-    if (preferences[p.slug] == null) preferences[p.slug] = 0.01;
+    if (preferences[p.slug] == null) preferences[p.slug] = 0.005;
   }
 
+  // Scala degli shock: prior affidabile → shock più piccoli
+  const shockScale = (0.35 + (1 - conf) * 0.65) * (scenario.chaosMode ? 1.8 : 1);
+
+  // 1) Compatibilità candidato (shock non lineare)
+  const compatibility = computeCompatibility(candidate, elector);
+  if (compatibility < 0.3) {
+    if (preferences[candidateParty] != null) {
+      preferences[candidateParty]! *= 0.2 + compatibility;
+    }
+    for (const party of Object.keys(preferences)) {
+      if (party !== candidateParty) {
+        preferences[party]! += (1 - compatibility) * 0.08 * shockScale;
+      }
+    }
+  } else if (compatibility > 0.7) {
+    // Boost limitato: non deve far esplodere il prior (es. Meloni 28% → 35%)
+    const boost = (0.04 + compatibility * 0.06) * shockScale;
+    bump(preferences, candidateParty, boost * preferences[candidateParty]!);
+    // Boost assoluto soft
+    bump(preferences, candidateParty, boost * 0.04);
+  } else {
+    bump(preferences, candidateParty, compatibility * 0.03 * shockScale);
+  }
+
+  // 2) Fattori contestuali come shock marginali (max ~5% relativo tipico)
   for (const factor of factors) {
-    const impact = factor.weightedScore; // raw * weight, tipicamente piccolo
-    const raw = factor.rawValue;
-    const w = factor.weight;
+    const impact = Math.min(0.05, factor.weightedScore * 0.05) * shockScale;
 
     switch (factor.category) {
       case "economy": {
         if (factor.factorId.includes("unemployment")) {
-          // raw alto = disoccupazione alta (distress) → opposizione
-          const intensity = impact * 0.35;
-          for (const party of OPPOSITION) bump(preferences, party, intensity * 0.08);
-          for (const party of GOV_2024) bump(preferences, party, -intensity * 0.05);
-        } else if (factor.factorId.includes("gdp") || factor.factorId.includes("investment")) {
-          // crescita/investimenti alti → governo
-          const intensity = impact * 0.25;
-          for (const party of GOV_2024) bump(preferences, party, intensity * 0.06);
+          for (const party of OPPOSITION) bump(preferences, party, impact);
+          for (const party of GOV_2024) bump(preferences, party, -impact * 0.6);
+        } else if (
+          factor.factorId.includes("gdp") ||
+          factor.factorId.includes("investment")
+        ) {
+          for (const party of GOV_2024) bump(preferences, party, impact * 0.8);
         } else if (factor.factorId.includes("inflation")) {
-          for (const party of OPPOSITION) bump(preferences, party, impact * 0.04);
-        } else {
-          // reddito/consumi: status quo bias leggero
-          for (const party of GOV_2024) bump(preferences, party, impact * 0.02);
+          for (const party of OPPOSITION) bump(preferences, party, impact * 0.7);
         }
         break;
       }
       case "polls": {
-        // Bandwagon: fattore polls_* punta a un partito
         const slug = pollFactorToSlug(factor.factorId);
-        if (slug) bump(preferences, slug, impact * 0.12);
+        if (slug) bump(preferences, slug, impact * 0.9);
         break;
       }
       case "social": {
         const slug = socialOrNewsParty(factor.factorId);
-        const amp = impact * 0.1 * elector.socialInfluence;
+        const amp = impact * elector.socialInfluence;
         if (slug) bump(preferences, slug, amp);
-        else if (factor.factorId.includes("national")) {
-          // sentiment nazionale positivo → partiti in vantaggio nei polls mock
-          bump(preferences, "fratelli-ditalia", amp * 0.5);
-          bump(preferences, "partito-democratico", amp * 0.35);
-        } else if (factor.factorId.includes("candidate")) {
-          bump(preferences, candidateParty, amp * 1.2);
+        else if (factor.factorId.includes("candidate")) {
+          bump(preferences, candidateParty, amp * 1.1);
         }
         break;
       }
       case "news": {
         const slug = socialOrNewsParty(factor.factorId);
-        const amp = impact * 0.08 * elector.localCandidateKnowledge;
+        const amp = impact * elector.localCandidateKnowledge;
         if (slug) bump(preferences, slug, amp);
         else if (factor.factorId.includes("candidate")) {
-          bump(preferences, candidateParty, amp * 1.3);
-        } else if (factor.factorId.includes("national")) {
-          bump(preferences, candidateParty, amp * 0.4);
+          bump(preferences, candidateParty, amp * 1.2);
         }
         break;
       }
       case "historical": {
+        // Hybrid: history già nel prior — shock residuo minimo
         const slug = historicalFactorToSlug(factor.factorId);
-        if (slug) bump(preferences, slug, impact * 0.15);
-        else if (factor.factorId.includes("comune_trend")) {
-          // stabilità → rafforza previousVote
-          if (elector.previousVote) {
-            bump(preferences, elector.previousVote, w * raw * 0.08);
-          }
-        }
-        break;
-      }
-      case "demographic": {
-        // già incorporato in affinity generation; effetto residuo soft
-        if (factor.factorId.includes("education") && elector.education === "alta") {
-          bump(preferences, "partito-democratico", impact * 0.03);
-          bump(preferences, "azione-iv", impact * 0.02);
-        }
+        if (slug) bump(preferences, slug, impact * 0.35);
         break;
       }
       default:
@@ -145,33 +146,19 @@ export function applyInfluence(
     }
   }
 
-  // Compatibilità non lineare candidato
-  const compatibility = computeCompatibility(candidate, elector);
-  if (compatibility < 0.3) {
-    if (preferences[candidateParty] != null) {
-      preferences[candidateParty]! *= 0.2;
-    }
+  // 3) Chaos
+  if (scenario.chaosMode) {
     for (const party of Object.keys(preferences)) {
-      if (party !== candidateParty) {
-        preferences[party]! += (1 - compatibility) * 0.04;
-      }
+      preferences[party]! *= 1 + (rng() - 0.5) * 0.4;
     }
-  } else if (compatibility > 0.7) {
-    if (preferences[candidateParty] != null) {
-      preferences[candidateParty]! *= 1 + 0.35 * compatibility;
-    } else {
-      preferences[candidateParty] = 0.15 * compatibility;
-    }
-  } else {
-    // fascia media: boost proporzionale
-    bump(preferences, candidateParty, compatibility * 0.06);
   }
 
-  // Scenario overrides
+  // 4) Override manuali
   if (scenario.partyVoteAdjustments) {
-    for (const [party, adjustment] of Object.entries(scenario.partyVoteAdjustments)) {
-      const slug = normalizePartySlug(party);
-      bump(preferences, slug, adjustment / 100);
+    for (const [party, adjustment] of Object.entries(
+      scenario.partyVoteAdjustments,
+    )) {
+      bump(preferences, normalizePartySlug(party), adjustment / 100);
     }
   }
 
@@ -182,7 +169,7 @@ export function applyInfluence(
   for (const [party, prob] of Object.entries(preferences)) {
     cum += prob;
     if (r <= cum) {
-      return { partyVote: party, probability: prob, preferences };
+      return { partyVote: party, probability: prob, preferences, compatibility };
     }
   }
 
@@ -191,6 +178,7 @@ export function applyInfluence(
     partyVote: firstParty,
     probability: preferences[firstParty] ?? 0,
     preferences,
+    compatibility,
   };
 }
 

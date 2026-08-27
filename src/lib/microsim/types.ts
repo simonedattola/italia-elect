@@ -26,7 +26,10 @@ export interface ElectorProfile {
   previousVote: string | null;
   socialInfluence: number;
   localCandidateKnowledge: number;
+  /** Prior MRP (o affinity ABM puro) — probabilità somma ≈ 1 */
   partyAffinity: Record<string, number>;
+  /** Affidabilità del prior statistico 0..1 (hybrid) */
+  statisticalConfidence?: number;
 }
 
 /** Candidato usato dal micro-sim (semplice + profilo opzionale). */
@@ -44,7 +47,11 @@ export interface ScenarioOverride {
   scenarioType?: ScenarioType | string;
   /** Aggiustamenti in punti percentuali (es. +2 = +0.02 su preferenza) */
   partyVoteAdjustments?: Record<string, number>;
+  /** Amplifica rumore/shock (scenari estremi) */
+  chaosMode?: boolean;
 }
+
+export type SimulationMode = "hybrid" | "pure-abm";
 
 export interface ComuneInput {
   comuneId: string;
@@ -52,6 +59,10 @@ export interface ComuneInput {
   scenario: ScenarioOverride;
   weights: WeightedFactors[];
   sampleSize?: number;
+  /** Default hybrid (MRP prior + ABM shocks) */
+  mode?: SimulationMode;
+  /** Data target per prior/sondaggi (default: now) */
+  targetDate?: Date;
 }
 
 export interface FactorImpact {

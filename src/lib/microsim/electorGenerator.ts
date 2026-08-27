@@ -1,13 +1,16 @@
 /**
- * Generatore di elettori sintetici per comune.
- * Distribuzioni demografiche derivate da BES/ISTAT (proxy) + baseline storica.
+ * Generatore elettori — Fase 4: prior MRP (hybrid) o affinity rumorosa (pure-abm).
  */
 
-import { getBaseline, listAvailableYears } from "../harvester/baseline";
-import { readComuneElections } from "../harvester/elections";
 import { getISTATData } from "../context/weightsEngine";
+import { readComuneElections } from "../harvester/elections";
 import { PARTIES } from "../electoral/parties";
 import { REGIONS } from "../electoral/provinces";
+import {
+  createPriorCache,
+  createPriorContext,
+  type DemographicCell,
+} from "../statistical/priorEngine";
 import type {
   DemographicBundle,
   EducationLevel,
@@ -16,6 +19,7 @@ import type {
   IncomeLevel,
   Occupation,
   Rng,
+  SimulationMode,
   ZoneType,
 } from "./types";
 
@@ -33,7 +37,6 @@ function clamp01(n: number): number {
 export function createRng(seed: number): Rng {
   let s = seed >>> 0;
   return () => {
-    // LCG (Numerical Recipes)
     s = (Math.imul(1664525, s) + 1013904223) >>> 0;
     return s / 0x100000000;
   };
@@ -60,10 +63,6 @@ function sampleAge(bandKey: string, rng: Rng): number {
   return Math.floor(lo + rng() * (hi - lo + 1));
 }
 
-/**
- * Costruisce distribuzioni demografiche da BES + euristiche territoriali.
- * (Fase 1 non espone ancora piramidi età comunali complete.)
- */
 export async function buildDemographics(
   comuneId: string,
 ): Promise<DemographicBundle> {
@@ -83,9 +82,9 @@ export async function buildDemographics(
   const provinceCode = comuneId.slice(0, 3);
   const regione = resolveRegione(comuneId, bes[0]?.territoryCode);
 
-  const isMetro = ["058091", "015146", "063049", "072006", "001272"].includes(
-    comuneId,
-  ) || comuneName.toUpperCase().includes("ROMA");
+  const isMetro =
+    ["058091", "015146", "063049", "072006", "001272"].includes(comuneId) ||
+    comuneName.toUpperCase().includes("ROMA");
 
   const u = clamp01((unemployment - 5) / 15);
   const emp = clamp01((employment - 45) / 35);
@@ -142,7 +141,6 @@ function renormalize(dist: Record<string, number>) {
 }
 
 function estimateElectorate(comuneId: string): number {
-  // Ordini di grandezza: Roma noto; altri default medio
   if (comuneId === "058091") return 2_055_000;
   return 25_000;
 }
@@ -157,61 +155,69 @@ function resolveRegione(comuneId: string, nuts?: string): string {
     ITI1: "Toscana",
   };
   if (nuts && byNuts[nuts]) return byNuts[nuts]!;
-  // fallback: prima regione del catalogo (meglio di stringa vuota)
   return REGIONS.find((r) => r.code === "12")?.name ?? "Italia";
 }
 
-export async function resolveBaselineShares(
-  comuneId: string,
-  preferredYear = 2022,
-): Promise<Record<string, number>> {
-  let shares = await getBaseline(comuneId, preferredYear);
-  if (Object.keys(shares).length > 0) return shares;
-  const years = await listAvailableYears(comuneId);
-  for (const y of [...years].sort((a, b) => b - a)) {
-    shares = await getBaseline(comuneId, y);
-    if (Object.keys(shares).length > 0) return shares;
-  }
-  // Soft national fallback
-  return {
-    "fratelli-ditalia": 26,
-    "partito-democratico": 19,
-    "movimento-5-stelle": 15,
-    lega: 9,
-    "forza-italia": 8,
-    "azione-iv": 4,
-    avss: 3.5,
-    "piu-europa": 2.5,
-    italexit: 1.5,
-  };
+export { loadHistoricalShares as resolveBaselineShares } from "../statistical/priorEngine";
+import { loadHistoricalShares } from "../statistical/priorEngine";
+
+export interface GenerateElectorsOptions {
+  rng?: Rng;
+  targetDate?: Date;
+  mode?: SimulationMode;
 }
 
 /**
- * Genera un campione di elettori per un comune.
+ * Genera elettori: hybrid = partyAffinity da prior MRP; pure-abm = rumore forte.
  */
 export async function generateElectors(
   comuneId: string,
   sampleSize = 1000,
-  rng: Rng = Math.random,
+  rngOrOpts: Rng | GenerateElectorsOptions = Math.random,
+  maybeOpts?: GenerateElectorsOptions,
 ): Promise<ElectorProfile[]> {
-  const istat = await buildDemographics(comuneId);
-  const baseline = await resolveBaselineShares(comuneId, 2022);
-
-  // Converti % storiche 0..100 → pesi 0..1
-  const baseAffinity: Record<string, number> = {};
-  for (const party of PARTIES) {
-    baseAffinity[party.slug] = (baseline[party.slug] ?? 0) / 100;
+  // Compat: generateElectors(id, n, rng) | generateElectors(id, n, { mode, rng })
+  let rng: Rng = Math.random;
+  let opts: GenerateElectorsOptions = {};
+  if (typeof rngOrOpts === "function") {
+    rng = rngOrOpts;
+    opts = maybeOpts ?? {};
+  } else {
+    opts = rngOrOpts;
+    rng = opts.rng ?? Math.random;
   }
-  const baseSum = Object.values(baseAffinity).reduce((a, b) => a + b, 0) || 1;
-  for (const k of Object.keys(baseAffinity)) {
-    baseAffinity[k] = baseAffinity[k]! / baseSum;
+
+  const mode: SimulationMode = opts.mode ?? "hybrid";
+  const targetDate = opts.targetDate ?? new Date();
+  const istat = await buildDemographics(comuneId);
+
+  const priorCtx =
+    mode === "hybrid" ? await createPriorContext(comuneId, targetDate) : null;
+  const priorCache = priorCtx ? createPriorCache(priorCtx) : null;
+
+  // Pure-ABM: baseline flat + noise (vecchio comportamento)
+  let baseAffinity: Record<string, number> | null = null;
+  if (mode === "pure-abm") {
+    const baseline = await loadHistoricalShares(comuneId, 2022);
+    baseAffinity = {};
+    for (const party of PARTIES) {
+      baseAffinity[party.slug] = (baseline[party.slug] ?? 0) / 100;
+    }
+    const baseSum =
+      Object.values(baseAffinity).reduce((a, b) => a + b, 0) || 1;
+    for (const k of Object.keys(baseAffinity)) {
+      baseAffinity[k] = baseAffinity[k]! / baseSum;
+    }
   }
 
   const electors: ElectorProfile[] = [];
   for (let i = 0; i < sampleSize; i++) {
-    const ageBand = sampleFromDistribution(istat.ageDistribution, rng);
-    const age = sampleAge(ageBand, rng);
-    const gender = sampleFromDistribution(istat.genderDistribution, rng) as Gender;
+    const ageGroup = sampleFromDistribution(istat.ageDistribution, rng);
+    const age = sampleAge(ageGroup, rng);
+    const gender = sampleFromDistribution(
+      istat.genderDistribution,
+      rng,
+    ) as Gender;
     const education = sampleFromDistribution(
       istat.educationDistribution,
       rng,
@@ -224,29 +230,56 @@ export async function generateElectors(
       istat.occupationDistribution,
       rng,
     ) as Occupation;
-    const zone = sampleFromDistribution(istat.zoneDistribution, rng) as ZoneType;
+    const zone = sampleFromDistribution(
+      istat.zoneDistribution,
+      rng,
+    ) as ZoneType;
 
-    const partyAffinity: Record<string, number> = {};
-    for (const party of PARTIES) {
-      const noise = (rng() - 0.5) * 0.08;
-      partyAffinity[party.slug] = Math.max(0, baseAffinity[party.slug]! + noise);
-    }
-
-    // Tilt leggero per demografia
-    tiltAffinityByDemographics(partyAffinity, {
-      age,
+    const cell: DemographicCell = {
+      ageGroup,
+      gender,
       education,
-      occupation,
-      zone,
       income,
-    });
+      zone,
+    };
+
+    let partyAffinity: Record<string, number>;
+    let statisticalConfidence = 0.35;
+
+    if (mode === "hybrid" && priorCache) {
+      const prior = priorCache.get(cell);
+      partyAffinity = { ...prior.partyProbabilities };
+      statisticalConfidence = prior.confidence;
+      // Micro-rumore individuale (ABM) molto contenuto sul prior
+      for (const k of Object.keys(partyAffinity)) {
+        partyAffinity[k] = Math.max(
+          0,
+          partyAffinity[k]! + (rng() - 0.5) * 0.015,
+        );
+      }
+    } else {
+      partyAffinity = {};
+      for (const party of PARTIES) {
+        const noise = (rng() - 0.5) * 0.18;
+        partyAffinity[party.slug] = Math.max(
+          0,
+          (baseAffinity?.[party.slug] ?? 1 / PARTIES.length) + noise,
+        );
+      }
+      tiltAffinityByDemographics(partyAffinity, {
+        age,
+        education,
+        occupation,
+        zone,
+        income,
+      });
+      statisticalConfidence = 0.25;
+    }
 
     const total = Object.values(partyAffinity).reduce((a, b) => a + b, 0) || 1;
     for (const key of Object.keys(partyAffinity)) {
       partyAffinity[key] = partyAffinity[key]! / total;
     }
-
-    const previousVote = pickMax(partyAffinity);
 
     electors.push({
       id: `elector-${comuneId}-${i}`,
@@ -258,10 +291,11 @@ export async function generateElectors(
       zone,
       province: istat.provinceCode,
       comuneId,
-      previousVote,
+      previousVote: pickMax(partyAffinity),
       socialInfluence: 0.2 + rng() * 0.8,
       localCandidateKnowledge: 0.2 + rng() * 0.6,
       partyAffinity,
+      statisticalConfidence,
     });
   }
 
@@ -291,7 +325,6 @@ function tiltAffinityByDemographics(
     bump("avss", 0.015);
     bump("partito-democratico", 0.01);
   }
-
   if (d.education === "alta") {
     bump("partito-democratico", 0.02);
     bump("azione-iv", 0.015);

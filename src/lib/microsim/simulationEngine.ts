@@ -1,8 +1,9 @@
 /**
- * Monte Carlo micro-simulazione a livello comunale.
+ * Monte Carlo micro-simulazione — Fase 4 hybrid MRP+ABM.
  */
 
 import type { PartyResult } from "../../types/simulation";
+import { allocateRosatellum } from "../electoral/rosatellum";
 import { allocateChamberSeats } from "../simulation/seats";
 import { getParty } from "../electoral/parties";
 import {
@@ -14,10 +15,10 @@ import { applyInfluence } from "./influenceEngine";
 import { normalizePartySlug } from "./compatibility";
 import type { ComuneInput, ComuneResult, Rng } from "./types";
 
-export const MICROSIM_VERSION = "3.0.0-microsim";
+export const MICROSIM_VERSION = "4.0.0-hybrid";
 
 /**
- * Allocazione seggi semplificata su un pool locale proporzionale all'elettorato.
+ * Seggi locali semplificati (pool proporzionale) — legacy comune-level.
  */
 export function computeSeats(
   partyPercentages: Record<string, number>,
@@ -41,7 +42,6 @@ export function computeSeats(
     },
   );
 
-  // Riusa Hare + largest remainders del motore nazionale, sul pool locale
   const allocation = allocateChamberSeats(results);
   const nationalTotal = allocation.total || 400;
   const scale = localSeatPool / nationalTotal;
@@ -75,15 +75,20 @@ export async function simulateComune(
   const seed = input.scenario.seed ?? Math.floor(Math.random() * 1_000_000);
   const rng = createRng(seed);
   const sampleSize = input.sampleSize ?? 1000;
+  const mode = input.mode ?? "hybrid";
+  const targetDate = input.targetDate ?? new Date("2022-09-25");
 
-  // Normalizza party slug candidato
   const candidate = {
     ...input.candidate,
     partySlug: normalizePartySlug(input.candidate.partySlug),
   };
 
   const demo = await buildDemographics(input.comuneId);
-  const electors = await generateElectors(input.comuneId, sampleSize, rng);
+  const electors = await generateElectors(input.comuneId, sampleSize, {
+    rng,
+    mode,
+    targetDate,
+  });
 
   const voteCounts: Record<string, number> = {};
   const votes: string[] = [];
@@ -106,11 +111,11 @@ export async function simulateComune(
     partyPercentages[party] = (count / totalVotes) * 100;
   }
 
-  // Pool seggi locale ~ quota Camera (400) pesata su elettorato nazionale ~50M
   const localSeatPool = Math.max(
     1,
     Math.round((demo.electorate / 50_000_000) * 400),
   );
+  // Comune: pool locale; a livello nazionale usare allocateRosatellum
   const seats = computeSeats(partyPercentages, localSeatPool);
 
   const sorted = Object.entries(voteCounts).sort((a, b) => b[1] - a[1]);
@@ -119,7 +124,11 @@ export async function simulateComune(
   const secondVotes = sorted[1]?.[1] ?? 0;
   const winnerMargin = ((winnerVotes - secondVotes) / totalVotes) * 100;
 
-  const confidenceInterval = computeConfidenceInterval(votes, 200, createRng(seed + 7));
+  const confidenceInterval = computeConfidenceInterval(
+    votes,
+    200,
+    createRng(seed + 7),
+  );
 
   const factorsImpact = input.weights
     .map((w) => ({
@@ -145,14 +154,23 @@ export async function simulateComune(
     metadata: {
       simulationTime: performance.now() - startTime,
       seed,
-      modelVersion: MICROSIM_VERSION,
+      modelVersion: `${MICROSIM_VERSION}:${mode}`,
     },
   };
 }
 
 /**
- * Bootstrap semplice sulle percentuali di voto (IC ~95%).
+ * Simula comune e applica Rosatellum nazionale sulle share risultanti (proxy).
  */
+export async function simulateComuneWithRosatellum(input: ComuneInput) {
+  const comune = await simulateComune(input);
+  const rosa = allocateRosatellum({
+    nationalShares: comune.partyVotes,
+    seed: comune.metadata.seed,
+  });
+  return { comune, rosatellum: rosa };
+}
+
 export function computeConfidenceInterval(
   votes: string[],
   iterations: number,
@@ -180,7 +198,8 @@ export function computeConfidenceInterval(
   for (const p of parties) {
     const arr = samples[p]!.sort((a, b) => a - b);
     const lo = arr[Math.floor(0.025 * arr.length)] ?? 0;
-    const hi = arr[Math.min(arr.length - 1, Math.floor(0.975 * arr.length))] ?? 0;
+    const hi =
+      arr[Math.min(arr.length - 1, Math.floor(0.975 * arr.length))] ?? 0;
     out[p] = [Number(lo.toFixed(2)), Number(hi.toFixed(2))];
   }
   return out;
