@@ -1,0 +1,324 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ─── Territori ───────────────────────────────────────────────
+
+model Region {
+  id        String     @id @default(cuid())
+  code      String     @unique // ISTAT es. "01"
+  name      String
+  provinces Province[]
+  results   ElectionResult[]
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+}
+
+model Province {
+  id         String   @id @default(cuid())
+  code       String   @unique // sigla es. "MI"
+  istatCode  String?  @unique
+  name       String
+  regionId   String
+  region     Region   @relation(fields: [regionId], references: [id])
+  lat        Float?
+  lng        Float?
+  population Int?
+  results    ElectionResult[]
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([regionId])
+}
+
+model Municipality {
+  id         String   @id @default(cuid())
+  istatCode  String   @unique
+  name       String
+  provinceCode String
+  population Int?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([provinceCode])
+}
+
+// ─── Partiti ─────────────────────────────────────────────────
+
+model Party {
+  id              String   @id @default(cuid())
+  slug            String   @unique
+  name            String
+  shortName       String
+  color           String
+  ideology        IdeologySpectrum
+  ideologyScore   Float    // -1 (sinistra) → +1 (destra)
+  coalitionFamily CoalitionFamily
+  foundedYear     Int?
+  isActive        Boolean  @default(true)
+  results         ElectionResult[]
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+enum IdeologySpectrum {
+  FAR_LEFT
+  LEFT
+  CENTER_LEFT
+  CENTER
+  CENTER_RIGHT
+  RIGHT
+  FAR_RIGHT
+}
+
+enum CoalitionFamily {
+  CENTROSINISTRA
+  CENTRODESTRA
+  CENTRO
+  SINISTRA
+  DESTRA
+  ALTRO
+}
+
+// ─── Elezioni storiche ───────────────────────────────────────
+
+model Election {
+  id          String        @id @default(cuid())
+  type        ElectionType
+  year        Int
+  date        DateTime
+  name        String
+  description String?
+  source      String        // es. "Ministero dell'Interno"
+  sourceUrl   String?
+  turnout     Float?        // affluenza nazionale %
+  results     ElectionResult[]
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  @@unique([type, year])
+  @@index([year])
+}
+
+enum ElectionType {
+  POLITICHE
+  EUROPEE
+  REGIONALI
+}
+
+model ElectionResult {
+  id             String        @id @default(cuid())
+  electionId     String
+  election       Election      @relation(fields: [electionId], references: [id], onDelete: Cascade)
+  partyId        String
+  party          Party         @relation(fields: [partyId], references: [id])
+  scope          ResultScope
+  regionId       String?
+  region         Region?       @relation(fields: [regionId], references: [id])
+  provinceId     String?
+  province       Province?     @relation(fields: [provinceId], references: [id])
+  votes          Int
+  percentage     Float
+  seats          Int?
+  turnout        Float?
+  createdAt      DateTime      @default(now())
+
+  @@unique([electionId, partyId, scope, regionId, provinceId])
+  @@index([electionId, scope])
+  @@index([partyId])
+}
+
+enum ResultScope {
+  NAZIONALE
+  REGIONALE
+  PROVINCIALE
+}
+
+// ─── Metriche territoriali derivate ──────────────────────────
+
+model TerritorialMetrics {
+  id                String   @id @default(cuid())
+  provinceId        String?
+  regionId          String?
+  partyId           String?
+  loyalty           Float    // fedeltà elettorale 0-1
+  volatility        Float    // volatilità 0-1
+  abstentionTrend   Float    // tendenza astensione
+  growthRate        Float    // crescita media consenso
+  avgTurnout        Float
+  lastUpdated       DateTime @default(now())
+
+  @@index([provinceId, partyId])
+  @@index([regionId, partyId])
+}
+
+// ─── Simulazioni ─────────────────────────────────────────────
+
+model Candidate {
+  id          String   @id @default(cuid())
+  firstName   String
+  lastName    String
+  partySlug   String
+  description String
+  program     String?
+  photoUrl    String?
+  isPublicFigure Boolean @default(false)
+  profile     Json?    // CandidateProfile scores
+  simulations Simulation[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([lastName, firstName])
+}
+
+model Simulation {
+  id              String   @id @default(cuid())
+  slug            String   @unique @default(cuid())
+  candidateId     String
+  candidate       Candidate @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  status          SimulationStatus @default(PENDING)
+  seed            Int      // per riproducibilità Monte Carlo
+  nationalResults Json     // PartyResult[]
+  chamberSeats    Json     // SeatAllocation
+  senateSeats     Json
+  coalitions      Json
+  provincialMap   Json     // ProvinceResult[]
+  winProbability  Float
+  confidenceLow   Float
+  confidenceHigh  Float
+  analysis        String?  @db.Text
+  modelMeta       Json     // variabili considerate, versioni
+  influenceFactors Json?   // Context influence breakdown
+  scenarios       Json?    // best / worst / mean
+  isPublic        Boolean  @default(false)
+  shareSlug       String?  @unique
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([createdAt])
+  @@index([candidateId])
+}
+
+// ─── Cache figure pubbliche ──────────────────────────────────
+
+model CandidateProfileCache {
+  id                 String   @id @default(cuid())
+  firstName          String
+  lastName           String
+  normalizedKey      String   @unique // "nome cognome" lowercase
+  category           PublicFigureCategory @default(UNKNOWN)
+  identifiers        Json?    // codici, alias, omonimi scartati
+  biography          String?  @db.Text
+  career             String?  @db.Text
+  sources            Json?    // {title,url,type}[]
+  notoriety          Float?
+  mediaExposure      Float?
+  perceivedLeadership Float?
+  partyCompatibility Float?
+  electoralImpact    Json?    // gain/loss/mobilize/comms
+  profileScores      Json?    // CandidateProfile full
+  controversyNotes   Json?    // fatti vs accuse vs opinioni
+  reliability        Float    @default(0.5)
+  lastVerifiedAt     DateTime @default(now())
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  @@index([lastName, firstName])
+  @@index([category])
+}
+
+enum PublicFigureCategory {
+  NATIONAL_PUBLIC
+  LOCAL_PUBLIC
+  UNKNOWN
+}
+
+// ─── Contesto dinamico ───────────────────────────────────────
+
+model Poll {
+  id            String   @id @default(cuid())
+  institute     String
+  publishedAt   DateTime
+  sampleSize    Int?
+  methodology   String?
+  reliability   Float    @default(0.7) // 0-1 affidabilità storica istituto
+  shares        Json     // Record<partySlug, percentage>
+  leaderTrust   Json?    // Record<name, score>
+  sourceUrl     String?
+  notes         String?
+  createdAt     DateTime @default(now())
+
+  @@index([publishedAt])
+}
+
+model PoliticalEvent {
+  id              String   @id @default(cuid())
+  title           String
+  summary         String   @db.Text
+  occurredAt      DateTime
+  sourceType      String   // quotidiano | agenzia | istituzionale | dichiarazione
+  sourceUrl       String?
+  intensity       Float    // 0-1
+  durationDays    Int      @default(30)
+  favoredParties  String[] // slugs
+  penalizedParties String[]
+  electorateShare Float    @default(0.3) // frazione elettori potenzialmente coinvolti
+  themes          String[]
+  createdAt       DateTime @default(now())
+
+  @@index([occurredAt])
+}
+
+model EconomicSnapshot {
+  id                 String   @id @default(cuid())
+  asOf               DateTime
+  gdpGrowth          Float?   // % a/a
+  inflation          Float?
+  unemployment       Float?
+  realWageGrowth     Float?
+  costOfLivingIndex  Float?   // 100 = neutro
+  spreadBtpBund      Float?
+  consumerConfidence Float?   // Istat-like
+  source             String
+  sourceUrl          String?
+  createdAt          DateTime @default(now())
+
+  @@index([asOf])
+}
+
+enum SimulationStatus {
+  PENDING
+  RUNNING
+  COMPLETED
+  FAILED
+}
+
+model Comparison {
+  id             String   @id @default(cuid())
+  slug           String   @unique @default(cuid())
+  simulationIds  String[] // max 6
+  winnerId       String?
+  results        Json
+  analysis       String?  @db.Text
+  isPublic       Boolean  @default(false)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}
+
+// ─── Aggiornamento dati ──────────────────────────────────────
+
+model DataUpdateLog {
+  id          String   @id @default(cuid())
+  source      String
+  sourceUrl   String?
+  electionType ElectionType?
+  year        Int?
+  recordsAdded Int     @default(0)
+  status      String
+  message     String?
+  createdAt   DateTime @default(now())
+}

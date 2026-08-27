@@ -1,0 +1,86 @@
+@import "tailwindcss";
+
+:root {
+  --background: #f7f8fa;
+  --foreground: #0f172a;
+  --card: #ffffff;
+  --surface: #eef1f6;
+  --surface-2: #e2e8f0;
+  --border: #d8dee8;
+  --muted: #64748b;
+  --it-blue: #003399;
+  --it-blue-dark: #002266;
+  --it-red: #c8102e;
+  --it-red-soft: #e8b4bc;
+}
+
+.dark {
+  --background: #0b1220;
+  --foreground: #e8eef7;
+  --card: #121a2b;
+  --surface: #182235;
+  --surface-2: #1e2a40;
+  --border: #2a3a55;
+  --muted: #94a3b8;
+  --it-blue: #4c7fff;
+  --it-blue-dark: #3a6af0;
+  --it-red: #e23b55;
+  --it-red-soft: #7a3040;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-body);
+  --font-display: var(--font-display);
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-body), "Segoe UI", sans-serif;
+  min-height: 100vh;
+}
+
+/* Atmospheric background — institutional Italian, not flat */
+.hero-atmosphere {
+  background:
+    radial-gradient(ellipse 80% 50% at 20% -10%, rgba(0, 51, 153, 0.18), transparent 55%),
+    radial-gradient(ellipse 60% 40% at 90% 10%, rgba(200, 16, 46, 0.12), transparent 50%),
+    linear-gradient(180deg, var(--background) 0%, var(--surface) 100%);
+}
+
+.dark .hero-atmosphere {
+  background:
+    radial-gradient(ellipse 80% 50% at 20% -10%, rgba(76, 127, 255, 0.2), transparent 55%),
+    radial-gradient(ellipse 60% 40% at 90% 10%, rgba(226, 59, 85, 0.12), transparent 50%),
+    linear-gradient(180deg, var(--background) 0%, #0e1628 100%);
+}
+
+.italy-stripe {
+  background: linear-gradient(
+    90deg,
+    #009246 0%,
+    #009246 33%,
+    #ffffff 33%,
+    #ffffff 66%,
+    #ce2b37 66%,
+    #ce2b37 100%
+  );
+}
+
+.prose-analysis h2 {
+  font-family: var(--font-display), serif;
+  font-size: 1.25rem;
+  margin-top: 1rem;
+  color: var(--it-blue);
+}
+
+.prose-analysis strong {
+  color: var(--foreground);
+  font-weight: 600;
+}
