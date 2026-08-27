@@ -15,7 +15,10 @@
     "postinstall": "prisma generate",
     "test:engine": "tsx scripts/test-engine.ts",
     "test:recognition": "tsx scripts/test-recognition.ts",
-    "test:compatibility": "tsx scripts/test-compatibility.ts"
+    "test:compatibility": "tsx scripts/test-compatibility.ts",
+    "test:harvester": "tsx scripts/test-harvester.ts",
+    "harvest:elections": "tsx scripts/harvest-elections.ts",
+    "harvest:istat": "tsx scripts/harvest-istat.ts"
   },
   "dependencies": {
     "@ai-sdk/openai": "^4.0.29",

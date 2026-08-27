@@ -1,0 +1,83 @@
+{
+  "comuneId": "058091",
+  "updatedAt": "2026-08-27T14:31:07.923Z",
+  "indicators": [
+    {
+      "comuneId": "058091",
+      "territoryCode": "ITE4",
+      "territoryLevel": "regione",
+      "year": 2022,
+      "domain": "BES_03",
+      "indicatorId": "03LAV001",
+      "indicatorLabel": "Tasso di occupazione",
+      "sex": "T",
+      "value": 62.4,
+      "unit": "PC",
+      "source": {
+        "id": "istat-bes-seed",
+        "kind": "istat_bes",
+        "provider": "ISTAT BES (seed/proxy Lazio ITE4)",
+        "retrievedAt": "2026-08-27T00:00:00.000Z",
+        "url": "https://esploradati.istat.it/SDMXWS/rest",
+        "notes": "Seed di bootstrap; sostituito dall'harvester SDMX quando online."
+      }
+    },
+    {
+      "comuneId": "058091",
+      "territoryCode": "ITE4",
+      "territoryLevel": "regione",
+      "year": 2022,
+      "domain": "BES_03",
+      "indicatorId": "03LAV008",
+      "indicatorLabel": "Tasso di disoccupazione",
+      "sex": "T",
+      "value": 8.9,
+      "unit": "PC",
+      "source": {
+        "id": "istat-bes-seed",
+        "kind": "istat_bes",
+        "provider": "ISTAT BES (seed/proxy Lazio ITE4)",
+        "retrievedAt": "2026-08-27T00:00:00.000Z",
+        "url": "https://esploradati.istat.it/SDMXWS/rest"
+      }
+    },
+    {
+      "comuneId": "058091",
+      "territoryCode": "ITE4",
+      "territoryLevel": "regione",
+      "year": 2022,
+      "domain": "BES_01",
+      "indicatorId": "01SAL001",
+      "indicatorLabel": "Speranza di vita alla nascita",
+      "sex": "T",
+      "value": 82.7,
+      "unit": "AVG_NY",
+      "source": {
+        "id": "istat-bes-seed",
+        "kind": "istat_bes",
+        "provider": "ISTAT BES (seed/proxy Lazio ITE4)",
+        "retrievedAt": "2026-08-27T00:00:00.000Z",
+        "url": "https://esploradati.istat.it/SDMXWS/rest"
+      }
+    },
+    {
+      "comuneId": "058091",
+      "territoryCode": "ITE4",
+      "territoryLevel": "regione",
+      "year": 2021,
+      "domain": "BES_08",
+      "indicatorId": "08SUB001",
+      "indicatorLabel": "Soddisfazione per la vita",
+      "sex": "T",
+      "value": 7.1,
+      "unit": "AVG",
+      "source": {
+        "id": "istat-bes-seed",
+        "kind": "istat_bes",
+        "provider": "ISTAT BES (seed/proxy Lazio ITE4)",
+        "retrievedAt": "2026-08-27T00:00:00.000Z",
+        "url": "https://esploradati.istat.it/SDMXWS/rest"
+      }
+    }
+  ]
+}

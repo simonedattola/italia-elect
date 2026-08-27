@@ -1,0 +1,115 @@
+{
+  "comuneId": "058091",
+  "comuneName": "ROMA",
+  "elections": [
+    {
+      "comuneId": "058091",
+      "comuneName": "ROMA",
+      "year": 2022,
+      "electionType": "POLITICHE",
+      "chamber": "CAMERA",
+      "turnout": 65.3,
+      "shares": {
+        "partito-democratico": 23.2,
+        "avss": 4.9,
+        "piu-europa": 3.9,
+        "other": 4.4,
+        "fratelli-ditalia": 28.6,
+        "forza-italia": 5,
+        "lega": 4.3,
+        "azione-iv": 10.4,
+        "movimento-5-stelle": 13.9,
+        "italexit": 1.4
+      },
+      "votes": {
+        "partito-democratico": 290527,
+        "avss": 60707,
+        "piu-europa": 48175,
+        "other": 54966,
+        "fratelli-ditalia": 357821,
+        "forza-italia": 62774,
+        "lega": 54130,
+        "azione-iv": 129856,
+        "movimento-5-stelle": 174329,
+        "italexit": 17712
+      },
+      "electorate": 2055382,
+      "voters": 1342798,
+      "source": {
+        "id": "eligendo-camera-2022",
+        "kind": "elections",
+        "provider": "Ministero dell'Interno — Eligendo (via open data / ondata mirror)",
+        "retrievedAt": "2026-08-27T14:31:27.381Z",
+        "url": "https://raw.githubusercontent.com/ondata/elezioni-politiche-2022/main/affluenza-risultati/dati/Eligendo/processing/Politiche2022_Scrutini_Camera_Italia.csv",
+        "notes": "Aggregazione VOTI LISTE per codice ISTAT. eleapi live può essere indisponibile: si usa CSV ufficiale Eligendo."
+      },
+      "rawListaNames": {
+        "partito-democratico": "PARTITO DEMOCRATICO - ITALIA DEMOCRATICA E PROGRESSISTA",
+        "avss": "ALLEANZA VERDI E SINISTRA",
+        "piu-europa": "+EUROPA",
+        "fratelli-ditalia": "FRATELLI D'ITALIA CON GIORGIA MELONI",
+        "forza-italia": "NOI MODERATI/LUPI - TOTI - BRUGNARO - UDC",
+        "lega": "LEGA PER SALVINI PREMIER",
+        "azione-iv": "AZIONE - ITALIA VIVA - CALENDA",
+        "movimento-5-stelle": "MOVIMENTO 5 STELLE",
+        "italexit": "ITALEXIT PER L'ITALIA"
+      }
+    },
+    {
+      "comuneId": "058091",
+      "comuneName": "ROMA",
+      "year": 2023,
+      "electionType": "REGIONALI",
+      "chamber": "UNICO",
+      "turnout": 37.2,
+      "shares": {
+        "fratelli-ditalia": 33.8,
+        "partito-democratico": 22.1,
+        "movimento-5-stelle": 12.5,
+        "forza-italia": 7.4,
+        "lega": 5.9,
+        "avss": 5.2,
+        "azione-iv": 3.1,
+        "piu-europa": 2.4,
+        "italexit": 1,
+        "other": 6.6
+      },
+      "source": {
+        "id": "eligendo-regionali-lazio-2023-roma-seed",
+        "kind": "elections",
+        "provider": "Ministero dell'Interno — Eligendo (aggregato seed Roma)",
+        "retrievedAt": "2026-08-27T14:31:24.609Z",
+        "url": "https://elezionistorico.interno.gov.it/"
+      }
+    },
+    {
+      "comuneId": "058091",
+      "comuneName": "ROMA",
+      "year": 2024,
+      "electionType": "EUROPEE",
+      "chamber": "UNICO",
+      "turnout": 53.2,
+      "shares": {
+        "fratelli-ditalia": 30.1,
+        "partito-democratico": 26.4,
+        "movimento-5-stelle": 10.8,
+        "forza-italia": 8.9,
+        "lega": 6.2,
+        "avss": 7.1,
+        "azione-iv": 3.4,
+        "piu-europa": 4.2,
+        "italexit": 1.1,
+        "other": 1.8
+      },
+      "source": {
+        "id": "eligendo-europee-2024-roma-seed",
+        "kind": "elections",
+        "provider": "Ministero dell'Interno — Eligendo (aggregato seed Roma)",
+        "retrievedAt": "2026-08-27T14:31:24.609Z",
+        "url": "https://elezionistorico.interno.gov.it/",
+        "notes": "Seed comunale aggregato per baseline multi-tipo; sostituibile con harvest dedicato."
+      }
+    }
+  ],
+  "updatedAt": "2026-08-27T14:31:27.382Z"
+}
