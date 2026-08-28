@@ -51,9 +51,13 @@ function FitBounds({ points }: { points: { lat: number; lng: number }[] }) {
 export function ItalyLeafletMapInner({
   data,
   highlightSlug,
+  dark = false,
+  tall = false,
 }: {
   data: ProvinceResult[];
   highlightSlug?: string;
+  dark?: boolean;
+  tall?: boolean;
 }) {
   const [expanded, setExpanded] = useState<string | null>(null);
   const byCode = useMemo(
@@ -74,16 +78,20 @@ export function ItalyLeafletMapInner({
   const boundsPoints = markers.map((m) => ({ lat: m.lat, lng: m.lng }));
 
   return (
-    <div className="overflow-hidden rounded-2xl border border-[var(--border)] shadow-xl shadow-blue-500/5">
+    <div className={`overflow-hidden ${dark ? "" : "rounded-2xl border border-[var(--border)] shadow-xl shadow-blue-500/5"}`}>
       <MapContainer
         center={[42.5, 12.5]}
         zoom={6}
-        className="h-[480px] w-full z-0"
+        className={`w-full z-0 ${tall ? "h-[min(52vh,520px)]" : "h-[480px]"}`}
         scrollWheelZoom
       >
         <TileLayer
           attribution='&copy; <a href="https://carto.com/">CARTO</a>'
-          url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
+          url={
+            dark
+              ? "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
+              : "https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
+          }
         />
         <FitBounds points={boundsPoints} />
         {markers.map((m) => {

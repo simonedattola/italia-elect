@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { Cormorant_Garamond, Source_Sans_3 } from "next/font/google";
 import { Providers } from "@/components/providers";
-import { SiteFooter, SiteHeader } from "@/components/site-header";
 import "./globals.css";
 
 const display = Cormorant_Garamond({
@@ -48,11 +47,7 @@ export default function RootLayout({
     <html lang="it">
       <body className={`${display.variable} ${body.variable} antialiased`}>
         <Providers>
-          <div className="flex min-h-screen flex-col">
-            <SiteHeader />
-            <main className="flex-1">{children}</main>
-            <SiteFooter />
-          </div>
+          <main className="min-h-screen">{children}</main>
         </Providers>
       </body>
     </html>
