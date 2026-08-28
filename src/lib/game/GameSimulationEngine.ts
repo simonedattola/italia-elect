@@ -11,10 +11,12 @@ import { createRng, clamp, mean } from "@/lib/utils";
 import { candidateRecognizer } from "./CandidateRecognizer";
 import { computeVicePresidentEffect } from "./VicePresidentEffect";
 import { voterRedistribution } from "./VoterRedistribution";
+import { applyScenarioToShares, scenarioInsights } from "./scenarios";
 import { ITALIAN_CANDIDATE_POOL, partyFromSlug } from "./computer/candidatePool";
 import type {
   CandidateGameProfile,
   GamePlayer,
+  GameInsight,
   GameSimulationOptions,
   GameSimulationResult,
   PlayerGameResult,
@@ -118,6 +120,10 @@ export class GameSimulationEngine {
       shares = voterRedistribution.redistribute(shares, presentSlugs);
     } else {
       shares = voterRedistribution.dampenAbsent(shares, presentSlugs);
+    }
+
+    if (options.scenario) {
+      shares = applyScenarioToShares(shares, options.scenario);
     }
 
     const playerPartySlugs = new Set(resolved.map((r) => r.player.party.slug));
@@ -247,7 +253,8 @@ export class GameSimulationEngine {
       }
     }
 
-    const narrative = buildNarrative(playerResults, winner);
+    const narrative = buildNarrative(playerResults, winner, options.scenario);
+    const insights = buildInsights(playerResults, options.scenario);
     const comparisonTable = playerResults.map((r) => ({
       name: r.candidateName,
       party: r.partyName,
@@ -266,15 +273,79 @@ export class GameSimulationEngine {
       provincialMap,
       narrative,
       comparisonTable,
+      scenario: options.scenario,
+      insights,
     };
   }
 }
 
-function buildNarrative(players: PlayerGameResult[], winner: PlayerGameResult): string {
-  const lines = [
+function buildInsights(
+  players: PlayerGameResult[],
+  scenario?: GameSimulationOptions["scenario"],
+): GameInsight[] {
+  const insights: GameInsight[] = [];
+  const winner = players[0];
+  if (!winner) return insights;
+
+  insights.push({
+    label: "Vincitore",
+    value: `${winner.candidateName} (${winner.partyName})`,
+    detail: `${winner.totalSeats} seggi · ${winner.percentage}%`,
+  });
+
+  const avgCompat = Math.round(
+    players.reduce((s, p) => s + p.profile.compatibility, 0) / players.length,
+  );
+  insights.push({
+    label: "Compatibilità media",
+    value: `${avgCompat}%`,
+    detail: "Tra candidati e partito scelto",
+  });
+
+  const textBoost = players.filter((p) => (p.profile.textSwingPts ?? 0) > 0.5);
+  if (textBoost.length) {
+    insights.push({
+      label: "Boost da testo",
+      value: `${textBoost.length} candidat${textBoost.length > 1 ? "i" : "o"}`,
+      detail: textBoost.map((p) => p.candidateName).join(", "),
+    });
+  }
+
+  const runner = players[1];
+  if (runner) {
+    const gap = winner.totalSeats - runner.totalSeats;
+    insights.push({
+      label: "Gap al secondo",
+      value: `${gap} seggi`,
+      detail: `${runner.candidateName} al ${runner.percentage}%`,
+    });
+  }
+
+  if (scenario && scenario.partyModifiers.length) {
+    const top = scenarioInsights(scenario).slice(0, 3);
+    insights.push({
+      label: "Scenario",
+      value: scenario.title,
+      detail: top.map((t) => `${t.party} ${t.effect}`).join(" · "),
+    });
+  }
+
+  return insights;
+}
+
+function buildNarrative(
+  players: PlayerGameResult[],
+  winner: PlayerGameResult,
+  scenario?: GameSimulationOptions["scenario"],
+): string {
+  const lines: string[] = [];
+  if (scenario?.narrative) {
+    lines.push(scenario.narrative);
+  }
+  lines.push(
     `${winner.candidateName} (${winner.partyName}) vince con ${winner.totalSeats} seggi (${winner.percentage}%).`,
     `Compatibilità ${winner.profile.compatibility}% · popolarità ${winner.profile.popularity}/100.`,
-  ];
+  );
   if (winner.profile.programSummary && winner.profile.programSummary !== "Testo breve o assente.") {
     lines.push(`Programma: ${winner.profile.programSummary}.`);
   }

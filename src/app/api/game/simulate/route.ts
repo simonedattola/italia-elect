@@ -16,6 +16,17 @@ const playerSchema = z.object({
     color: z.string(),
     isCustom: z.boolean().optional(),
     ideologyScore: z.number().optional(),
+    customProfile: z
+      .object({
+        motto: z.string(),
+        economicAxis: z.number(),
+        socialAxis: z.number(),
+        themeAnswers: z.record(
+          z.string(),
+          z.union([z.string(), z.number(), z.boolean()]),
+        ),
+      })
+      .optional(),
   }),
   candidate: z.object({
     firstName: z.string().min(1),
@@ -37,12 +48,25 @@ const playerSchema = z.object({
 const bodySchema = z
   .object({
     mode: z.enum(["multiplayer", "singleplayer", "vscomputer", "computervscomputer"]),
-    players: z.array(playerSchema).max(4),
+    players: z.array(playerSchema).max(8),
     redistributionMode: z.enum(["candidates_only", "all_parties"]).optional(),
     realPartySlugs: z.array(z.string()).optional(),
     difficulty: z.enum(["easy", "medium", "hard", "impossible"]).optional(),
     computerOrientation: z
       .enum(["random", "right", "left", "center", "populist"])
+      .optional(),
+    scenario: z
+      .object({
+        id: z.string(),
+        kind: z.enum(["current", "custom", "random"]),
+        title: z.string(),
+        description: z.string(),
+        narrative: z.string(),
+        customText: z.string().optional(),
+        partyModifiers: z.array(
+          z.object({ slug: z.string(), delta: z.number() }),
+        ),
+      })
       .optional(),
     seed: z.number().optional(),
   })
@@ -55,6 +79,13 @@ const bodySchema = z
       ctx.addIssue({
         code: "custom",
         message: "Multiplayer richiede almeno 2 giocatori",
+        path: ["players"],
+      });
+    }
+    if (data.mode === "multiplayer" && data.players.length > 8) {
+      ctx.addIssue({
+        code: "custom",
+        message: "Massimo 8 giocatori",
         path: ["players"],
       });
     }
@@ -104,6 +135,7 @@ export async function POST(req: Request) {
       realPartySlugs: data.realPartySlugs,
       difficulty: data.difficulty,
       computerOrientation: data.computerOrientation,
+      scenario: data.scenario,
       seed,
     });
 

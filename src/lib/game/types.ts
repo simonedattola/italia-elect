@@ -14,12 +14,50 @@ export type ComputerOrientation = "random" | "right" | "left" | "center" | "popu
 
 export type RedistributionMode = "candidates_only" | "all_parties";
 
+export type ScenarioKind = "current" | "custom" | "random";
+
+export interface ScenarioPartyModifier {
+  slug: string;
+  delta: number;
+}
+
+export interface ScenarioDefinition {
+  id: string;
+  kind: ScenarioKind;
+  title: string;
+  description: string;
+  narrative: string;
+  partyModifiers: ScenarioPartyModifier[];
+  customText?: string;
+}
+
+export type ThemeQuestionType = "yesno" | "scale" | "choice";
+
+export interface ThemeQuestion {
+  id: string;
+  theme: string;
+  label: string;
+  type: ThemeQuestionType;
+  min?: number;
+  max?: number;
+  labels?: [string, string];
+  options?: string[];
+}
+
+export interface CustomPartyProfile {
+  motto: string;
+  economicAxis: number;
+  socialAxis: number;
+  themeAnswers: Record<string, string | number | boolean>;
+}
+
 export interface GamePartyChoice {
   slug: string;
   name: string;
   color: string;
   isCustom?: boolean;
   ideologyScore?: number;
+  customProfile?: CustomPartyProfile;
 }
 
 export interface GameCandidateInput {
@@ -70,6 +108,13 @@ export interface GameSimulationOptions {
   realPartySlugs?: string[];
   difficulty?: GameDifficulty;
   computerOrientation?: ComputerOrientation;
+  scenario?: ScenarioDefinition;
+}
+
+export interface GameInsight {
+  label: string;
+  value: string;
+  detail?: string;
 }
 
 export interface PlayerGameResult {
@@ -114,6 +159,27 @@ export interface GameSimulationResult {
     seats: number;
     position: string;
   }>;
+  scenario?: ScenarioDefinition;
+  insights?: GameInsight[];
+}
+
+export type WizardStep = "players" | "scenario" | "competition" | "results";
+
+export interface PlayerFormState {
+  id: string;
+  displayName: string;
+  leaderFirstName: string;
+  leaderLastName: string;
+  description: string;
+  program: string;
+  vpFirstName: string;
+  vpLastName: string;
+  partySlug: string;
+  customPartyName: string;
+  customMotto: string;
+  economicAxis: number;
+  socialAxis: number;
+  themeAnswers: Record<string, string | number | boolean>;
 }
 
 export interface ComputerChoice {
