@@ -48,3 +48,5 @@ yarn-error.log*
 next-env.d.ts
 
 /src/generated/prisma
+/src/data/agents/latest-sample.json
+/src/data/daily/
