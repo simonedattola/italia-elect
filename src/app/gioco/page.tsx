@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import { PageHeader, PageShell } from "@/components/layout/page-header";
 import { Button } from "@/components/ui/button";
@@ -367,9 +366,6 @@ export default function GiocoPage() {
 
           <div className="flex flex-wrap gap-3">
             <Button onClick={resetGame}>🔄 Nuova partita</Button>
-            <Button variant="outline" asChild>
-              <Link href="/simula">Analista avanzato</Link>
-            </Button>
           </div>
         </div>
       )}

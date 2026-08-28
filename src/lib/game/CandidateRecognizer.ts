@@ -4,19 +4,12 @@
 import { resolveCandidateForSimulation } from "@/lib/simulation/resolveCandidate";
 import { buildIntelligenceProfile, candidateElectoralDelta } from "@/lib/intelligence/candidateProfile";
 import { analyzeCampaignText } from "./CampaignTextAnalyzer";
+import { buildPositionLabel } from "./ideologyLabels";
 import { proxyPartySlugForRecognition, resolveGameParty } from "./partyUtils";
 import { parseCandidateName } from "./parseCandidateName";
 import { swingFromVpProfile } from "./vpEffectFormula";
 import type { CandidateGameProfile, GameCandidateInput, GamePartyChoice } from "./types";
 import { clamp } from "@/lib/utils";
-
-function ideologyLabel(score: number): string {
-  if (score >= 0.55) return "Destra";
-  if (score >= 0.2) return "Centro-destra";
-  if (score <= -0.55) return "Sinistra";
-  if (score <= -0.2) return "Centro-sinistra";
-  return "Centro";
-}
 
 function recognitionNote(
   isPublic: boolean,
@@ -117,6 +110,13 @@ export class CandidateRecognizer {
             (compatibility + campaign.textSwingPts * 2) * (textWeight * 0.15),
         );
       }
+      if (naturalLeader) {
+        compatibility = Math.max(
+          compatibility,
+          profile.partyCompatibility * 0.92,
+          78,
+        );
+      }
       mobilization = clamp(profile.mobilization + campaign.textSwingPts * 0.8, 0, 95);
     } else if (profile.isPublicFigure) {
       textSwingPts = 0;
@@ -124,9 +124,19 @@ export class CandidateRecognizer {
       credibility = profile.credibility;
     }
 
-    const ideology = hasUserText && campaign.hasReliableIdeology
-      ? campaign.ideology
-      : fig?.ideologyHint ?? campaign.ideology;
+    const ideology =
+      naturalLeader && fig?.ideologyHint !== undefined
+        ? hasUserText && campaign.hasReliableIdeology
+          ? fig.ideologyHint * 0.55 + campaign.ideology * 0.45
+          : fig.ideologyHint
+        : hasUserText && campaign.hasReliableIdeology
+          ? campaign.ideology
+          : fig?.ideologyHint ?? campaign.ideology;
+
+    const positionLabel = buildPositionLabel(ideology, campaign.themes, {
+      partyIdeology: partyDef.ideologyScore,
+      isPopulist: campaign.themes.includes("Sicurezza") || campaign.themes.includes("Sovranità"),
+    });
 
     const expectedSwingPts = clamp(
       delta.expectedPts + textSwingPts,
@@ -164,7 +174,7 @@ export class CandidateRecognizer {
       mobilization,
       credibility,
       isPublicFigure: profile.isPublicFigure,
-      positionLabel: ideologyLabel(ideology),
+      positionLabel,
       programSummary: hasUserText
         ? campaign.summary
         : profile.isPublicFigure

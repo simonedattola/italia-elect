@@ -51,10 +51,11 @@ function applyCandidateToShare(
 
   if (isCustom) {
     const strength =
-      (profile.compatibility / 100) * 0.42 +
-      (profile.popularity / 100) * 0.33 +
+      (profile.compatibility / 100) * 0.45 +
+      (profile.popularity / 100) * 0.3 +
       impact * 0.25;
-    return clamp(strength * 18, 1.5, 30);
+    const swing = profile.expectedSwingPts + profile.vicePresidentEffect;
+    return clamp(strength * 24 + swing * 0.35 + profile.popularity / 15, 3, 38);
   }
 
   const compatFactor = 0.52 + (profile.compatibility / 100) * 0.58;

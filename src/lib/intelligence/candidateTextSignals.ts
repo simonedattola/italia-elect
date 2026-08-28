@@ -9,11 +9,15 @@ import { computeElectoralCompatibility } from "./electoralCompatibility";
 import type { PublicFigureProfile } from "@/lib/intelligence/publicFigure/types";
 
 const LEFT_RE =
-  /sinistra|progressist|egualitar|ambiental|lgbt|femminis|redistribuz|welfare|antifasc|lavoratori|sindacal|accoglienza|europeist|proeurop|europro|democratico/i;
+  /sinistra|progressist|egualitar|ambiental|lgbt|femminis|redistribuz|welfare|antifasc|lavoratori|sindacal|accoglienza|democratico/i;
 const PROGRESSIVE_LEFT_RE =
-  /diritti|libert[aà]|europa|europea|europei|democratica|democratici|clima|climatico|giovani|scuola|ricerca|innovazione|opportunit|generazione|inclusione|sostenib|green|parit[aà]|uguaglianza|moderna|giusta/i;
+  /diritti|libert[aà] civili|clima|climatico|giovani|scuola|ricerca|innovazione|opportunit|generazione|inclusione|sostenib|green|parit[aà]|uguaglianza|moderna|giusta/i;
+const EUROPEANIST_LEFT_RE =
+  /europa sociale|unione europea|integrazione europea|europro|proeurop|europeista/i;
 const RIGHT_RE =
-  /conservator|sovranist|patriott|sicurezza|tradizion|famiglia|immigrazion|ordine|nazione|identit|flat tax|destra|nazionalist/i;
+  /conservator|sovranist|patriott|sicurezza|tradizion|famiglia|immigrazion|ordine|nazione|identit|flat tax|destra|nazionalist|confine|espuls/i;
+const EUROSCEPTIC_RIGHT_RE =
+  /euroscett|europa dei popoli|sovranit[aà] nazionale|uscita dall.?euro|bruxelles|burocrazia europea/i;
 const CENTER_RE = /liberale|moderato|centrist|riformist|tecnocrat/i;
 const SCANDAL_RE =
   /corruzion|inchiesta|condannat|scandal|indagat|processo|mazzette|tangent/i;
@@ -39,8 +43,17 @@ export function textDepth(description: string, program?: string): number {
 export function inferTextIdeology(blob: string): number {
   let score = 0;
   let hits = 0;
+
+  if (EUROSCEPTIC_RIGHT_RE.test(blob)) {
+    score += 0.68;
+    hits += 2;
+  }
   if (LEFT_RE.test(blob)) {
     score -= 0.55;
+    hits++;
+  }
+  if (EUROPEANIST_LEFT_RE.test(blob)) {
+    score -= 0.35;
     hits++;
   }
   const progressiveHits = blob.match(new RegExp(PROGRESSIVE_LEFT_RE.source, "gi"))?.length ?? 0;
@@ -155,8 +168,8 @@ export function blendCompatibilityWithUserText(opts: {
   if (reliableIdeology && signals.depth > 25 && signals.ideologyGap > 0.45) {
     const penalty = signals.ideologyGap * 38 * w;
     blended -= penalty;
-    if (naturalLeader && signals.ideologyGap > 0.6) {
-      blended = Math.min(blended, baseCompatibility * 0.72);
+    if (naturalLeader) {
+      blended = Math.max(blended, baseCompatibility * 0.82);
     }
   }
 
@@ -164,8 +177,8 @@ export function blendCompatibilityWithUserText(opts: {
     blended += (1 - signals.ideologyGap) * 14 * w;
   }
 
-  if (naturalLeader && signals.ideologyGap < 0.25 && signals.depth > 30) {
-    blended = Math.max(blended, Math.min(96, baseCompatibility + 4));
+  if (naturalLeader) {
+    blended = Math.max(blended, Math.min(96, baseCompatibility * 0.94), 80);
   }
 
   return clamp(Math.round(blended * 10) / 10, 0, 98);
@@ -265,9 +278,12 @@ export function enrichProfileWithCandidateText(
     signals.ideologyGap > 0.35 &&
     textCompat.electoralCompatibilityScore < profile.partyCompatibility - 8
   ) {
-    compatibility = Math.min(
-      compatibility,
-      Math.round(textCompat.electoralCompatibilityScore * 0.92 + profile.partyCompatibility * 0.04),
+    compatibility = Math.max(
+      profile.partyCompatibility * 0.88,
+      Math.round(
+        textCompat.electoralCompatibilityScore * 0.35 +
+          profile.partyCompatibility * 0.6,
+      ),
     );
   }
 

@@ -330,6 +330,55 @@ async function testVpPreviewEffect() {
   assert(profile.vicePresidentEffect > 0, `VP coerente dà boost (got ${profile.vicePresidentEffect})`);
 }
 
+async function testVannacciFnCompatibility() {
+  const profile = await candidateRecognizer.recognize(
+    {
+      firstName: "Roberto",
+      lastName: "Vannacci",
+      description: "Presidente Futuro Nazionale, leader sovranista.",
+    },
+    { slug: "futuro-nazionale", name: "Futuro Nazionale", color: "#1A5276", ideologyScore: 0.75 },
+    "Sovranità nazionale, immigrazione controllata, Europa dei popoli, sicurezza e ordine.",
+  );
+  console.log(
+    `  Vannacci/FN → compat ${profile.compatibility}, pos ${profile.positionLabel}, swing ${profile.expectedSwingPts.toFixed(1)}`,
+  );
+  assert(profile.isPublicFigure, "Vannacci riconosciuto");
+  assert(profile.compatibility >= 72, `Compatibilità FN alta (got ${profile.compatibility})`);
+  assert(profile.ideology > 0.4, `Ideologia di destra (got ${profile.ideology})`);
+}
+
+async function testCustomPartySimulation() {
+  const player: GamePlayer = {
+    id: "custom",
+    displayName: "Test",
+    party: {
+      slug: "custom-test1",
+      name: "Nuovo Movimento",
+      color: "#9333EA",
+      ideologyScore: 0.55,
+      isCustom: true,
+    },
+    candidate: {
+      firstName: "Anna",
+      lastName: "Neri",
+      description: "Leader populista del nuovo movimento sovranista.",
+      program: "Patriottismo economico, flat tax, sicurezza, famiglia e sovranità.",
+    },
+    isHuman: true,
+  };
+  const result = await gameSimulationEngine.simulate([player], {
+    mode: "singleplayer",
+    redistributionMode: "candidates_only",
+    realPartySlugs: ["fratelli-ditalia", "lega"],
+    seed: 99,
+  });
+  const custom = result.players.find((p) => p.partySlug === "custom-test1");
+  console.log(`  Custom party single player → ${custom?.percentage}%`);
+  assert(Boolean(custom), "Partito custom in risultati");
+  assert((custom?.percentage ?? 0) >= 8, `Custom party competitivo (got ${custom?.percentage})`);
+}
+
 async function main() {
   console.log("\n=== Italia Elect Game — test suite ===\n");
 
@@ -339,6 +388,8 @@ async function main() {
   await testMeloniVsSchlein();
   await testSurnameOnlyRecognition();
   await testVpPreviewEffect();
+  await testVannacciFnCompatibility();
+  await testCustomPartySimulation();
   await testRegionalMap();
   await testSinglePlayer();
   await testProgressiveTextShiftsPd();

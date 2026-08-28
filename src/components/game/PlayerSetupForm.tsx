@@ -13,6 +13,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { PARTIES } from "@/lib/electoral/parties";
 import { parseCandidateName } from "@/lib/game/parseCandidateName";
+import { customPartyIdeologyLabel } from "@/lib/game/ideologyLabels";
 import type { CandidateGameProfile, GamePlayer } from "@/lib/game/types";
 import { CandidateCard } from "./CandidateCard";
 import { nanoid } from "nanoid";
@@ -193,18 +194,24 @@ export function PlayerSetupForm({
               />
             </div>
             <div className="space-y-1">
-              <Label>
-                Ideologia ({customIdeology > 0 ? "destra" : customIdeology < 0 ? "sinistra" : "centro"})
-              </Label>
+              <Label>Profilo ideologico</Label>
+              <p className="text-xs font-medium text-[var(--foreground)]">
+                {customPartyIdeologyLabel(customIdeology)}
+              </p>
               <input
                 type="range"
                 min={-1}
                 max={1}
-                step={0.1}
+                step={0.05}
                 value={customIdeology}
                 onChange={(e) => setCustomIdeology(Number(e.target.value))}
                 className="w-full"
               />
+              <div className="flex justify-between text-[10px] text-[var(--muted)]">
+                <span>Sinistra</span>
+                <span>Centro</span>
+                <span>Destra</span>
+              </div>
             </div>
           </div>
         ) : (
