@@ -2,15 +2,14 @@
  * Motore simulazione partita — integra baseline, candidati, VP, ridistribuzione, mappe.
  */
 import { getGameBaseline } from "./gameBaseline";
-import { PARTIES, getPartyOrThrow } from "@/lib/electoral/parties";
+import { PARTIES } from "@/lib/electoral/parties";
 import { buildProvincialMapFromNational } from "@/lib/electoral/provincialMap";
 import { normalizePartyShares } from "@/lib/electoral/normalizeShares";
 import { allocateChamberSeats, allocateSenateSeats } from "@/lib/simulation/seats";
 import { PROVINCES } from "@/lib/electoral/provinces";
 import { createRng, clamp, mean } from "@/lib/utils";
-import { candidateRecognizer, customPartyDefinition } from "./CandidateRecognizer";
+import { candidateRecognizer } from "./CandidateRecognizer";
 import { computeVicePresidentEffect } from "./VicePresidentEffect";
-import { programAnalyzer } from "./ProgramAnalyzer";
 import { voterRedistribution } from "./VoterRedistribution";
 import { ITALIAN_CANDIDATE_POOL, partyFromSlug } from "./computer/candidatePool";
 import type {
@@ -46,23 +45,25 @@ async function resolvePlayer(player: GamePlayer): Promise<ResolvedPlayer> {
 function applyCandidateToShare(
   baseShare: number,
   profile: CandidateGameProfile,
-  programImpact: number,
   isCustom: boolean,
 ): number {
+  const impact = profile.campaignImpact ?? 0.5;
+
   if (isCustom) {
     const strength =
-      (profile.compatibility / 100) * 0.45 +
-      (profile.popularity / 100) * 0.35 +
-      programImpact * 0.2;
-    return clamp(strength * 18, 1.5, 28);
+      (profile.compatibility / 100) * 0.42 +
+      (profile.popularity / 100) * 0.33 +
+      impact * 0.25;
+    return clamp(strength * 18, 1.5, 30);
   }
 
-  const compatFactor = 0.55 + (profile.compatibility / 100) * 0.55;
-  const fameFactor = 0.85 + (profile.popularity / 100) * 0.35;
+  const compatFactor = 0.52 + (profile.compatibility / 100) * 0.58;
+  const fameFactor = 0.82 + (profile.popularity / 100) * 0.38;
   const swing = profile.expectedSwingPts + profile.vicePresidentEffect;
-  let share = baseShare * compatFactor * fameFactor + swing * 0.35;
-  share += programImpact * 2.5;
-  return Math.max(0.4, share);
+  let share = baseShare * compatFactor * fameFactor + swing * 0.42;
+  share += impact * 3.2;
+  share += (profile.textDepth ?? 0) > 50 ? 0.8 : 0;
+  return Math.max(0.35, share);
 }
 
 export class GameSimulationEngine {
@@ -124,18 +125,9 @@ export class GameSimulationEngine {
     for (const { player, profile } of resolved) {
       const slug = player.party.slug;
       const base = shares[slug] ?? (player.party.isCustom ? 0.5 : 3);
-      const program = player.candidate.program ?? "";
-      const partyDef = player.party.isCustom
-        ? customPartyDefinition(player.party)
-        : getPartyOrThrow(slug);
-      const prog =
-        program.length > 30
-          ? programAnalyzer.analyze(program, partyDef)
-          : null;
       adjusted[slug] = applyCandidateToShare(
         base,
         profile,
-        prog?.impactScore ?? 0.3,
         Boolean(player.party.isCustom),
       );
     }
@@ -280,8 +272,20 @@ export class GameSimulationEngine {
 function buildNarrative(players: PlayerGameResult[], winner: PlayerGameResult): string {
   const lines = [
     `${winner.candidateName} (${winner.partyName}) vince con ${winner.totalSeats} seggi (${winner.percentage}%).`,
-    `Compatibilità ${winner.profile.compatibility}% e popolarità ${winner.profile.popularity}/100.`,
+    `Compatibilità ${winner.profile.compatibility}% · popolarità ${winner.profile.popularity}/100.`,
   ];
+  if (winner.profile.programSummary && winner.profile.programSummary !== "Testo breve o assente.") {
+    lines.push(`Programma: ${winner.profile.programSummary}.`);
+  }
+  if ((winner.profile.textSwingPts ?? 0) > 0.8) {
+    lines.push(
+      `Descrizione e programma hanno dato un boost di +${winner.profile.textSwingPts!.toFixed(1)} punti percentuali.`,
+    );
+  } else if ((winner.profile.textSwingPts ?? 0) < -0.8) {
+    lines.push(
+      `Tensione tra testo elettorale e partito: ${winner.profile.textSwingPts!.toFixed(1)}pp.`,
+    );
+  }
   if (winner.profile.vicePresidentEffect > 0) {
     lines.push(`Il vicepresidente ha contribuito con +${winner.profile.vicePresidentEffect.toFixed(1)}pp.`);
   }

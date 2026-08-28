@@ -2,7 +2,7 @@
  * Profilo candidato — Personal Impact ≠ Electoral Compatibility.
  */
 
-import type { CandidateInput, CandidateProfile } from "@/types/simulation";
+import type { CandidateInput, CandidateProfile, PartyDefinition } from "@/types/simulation";
 import type { RecognizedCandidate } from "@/types/intelligence";
 import type { PublicFigureProfile } from "@/lib/intelligence/publicFigure/types";
 import { recognizeCandidate } from "@/lib/intelligence/candidateRecognition";
@@ -30,7 +30,8 @@ function textDepth(description: string, program?: string): number {
 export function buildIntelligenceProfile(
   input: CandidateInput,
   recognized?: RecognizedCandidate,
-  publicFigure?: PublicFigureProfile
+  publicFigure?: PublicFigureProfile,
+  partyOverride?: PartyDefinition,
 ): CandidateProfile & {
   recognition: RecognizedCandidate;
   personalBrandScore: number;
@@ -41,7 +42,7 @@ export function buildIntelligenceProfile(
   const rec =
     recognized ??
     recognizeCandidate(input.firstName, input.lastName, input.partySlug);
-  const party = getPartyOrThrow(input.partySlug);
+  const party = partyOverride ?? getPartyOrThrow(input.partySlug);
 
   // Se manca il profilo Entity Resolution, prova KB sync (test/engine legacy)
   const figure =

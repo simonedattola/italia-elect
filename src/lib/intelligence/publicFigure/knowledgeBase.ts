@@ -39,6 +39,7 @@ export const CURATED_PUBLIC_FIGURES: (Seed & { aliases?: string[] })[] = [
   {
     firstName: "Silvio",
     lastName: "Berlusconi",
+    aliases: ["Berlusconi"],
     identity: "former_politician",
     category: "NATIONAL_PUBLIC",
     biography:
@@ -103,6 +104,7 @@ export const CURATED_PUBLIC_FIGURES: (Seed & { aliases?: string[] })[] = [
   {
     firstName: "Giorgia",
     lastName: "Meloni",
+    aliases: ["Meloni"],
     identity: "politician",
     category: "NATIONAL_PUBLIC",
     biography:
@@ -139,6 +141,7 @@ export const CURATED_PUBLIC_FIGURES: (Seed & { aliases?: string[] })[] = [
   {
     firstName: "Matteo",
     lastName: "Salvini",
+    aliases: ["Salvini"],
     identity: "politician",
     category: "NATIONAL_PUBLIC",
     biography: "Politico italiano, leader della Lega; più volte ministro e vicepresidente del Consiglio.",
@@ -168,6 +171,7 @@ export const CURATED_PUBLIC_FIGURES: (Seed & { aliases?: string[] })[] = [
   {
     firstName: "Elly",
     lastName: "Schlein",
+    aliases: ["Schlein"],
     identity: "politician",
     category: "NATIONAL_PUBLIC",
     biography: "Politica italiana, segretaria del Partito Democratico.",
@@ -197,6 +201,7 @@ export const CURATED_PUBLIC_FIGURES: (Seed & { aliases?: string[] })[] = [
   {
     firstName: "Giuseppe",
     lastName: "Conte",
+    aliases: ["Conte"],
     identity: "former_politician",
     category: "NATIONAL_PUBLIC",
     biography: "Giurista e politico; ex Presidente del Consiglio; leader del Movimento 5 Stelle.",
@@ -255,6 +260,7 @@ export const CURATED_PUBLIC_FIGURES: (Seed & { aliases?: string[] })[] = [
   {
     firstName: "Mario",
     lastName: "Draghi",
+    aliases: ["Draghi"],
     identity: "institutional",
     category: "NATIONAL_PUBLIC",
     biography: "Economista; ex Presidente BCE; ex Presidente del Consiglio.",
@@ -281,34 +287,151 @@ export const CURATED_PUBLIC_FIGURES: (Seed & { aliases?: string[] })[] = [
     },
   },
   {
-    firstName: "Massimo",
-    lastName: "Bossetti",
-    identity: "media_figure",
+    firstName: "Ignazio",
+    lastName: "La Russa",
+    aliases: ["La Russa"],
+    identity: "politician",
     category: "NATIONAL_PUBLIC",
-    biography:
-      "Figura nota al pubblico italiano principalmente per vicende giudiziarie ampiamente riportate dalla stampa. Non è un esponente politico.",
-    politicalHistory: [],
-    positions: [],
-    partyHistory: [],
-    mediaExposure: 70,
-    publicRecognition: 68,
+    biography: "Politico italiano, presidente del Senato; cofondatore di Fratelli d'Italia.",
+    politicalHistory: ["Cofondatore FdI", "Ministro della Difesa", "Presidente del Senato"],
+    positions: ["Presidente del Senato", "Senatore"],
+    partyHistory: ["Alleanza Nazionale", "Fratelli d'Italia"],
+    mediaExposure: 72,
+    publicRecognition: 78,
+    defaultPartySlug: "fratelli-ditalia",
+    ideologyHint: 0.72,
     controversies: {
-      verifiedFacts: ["Notorietà mediatica legata a procedimenti giudiziari riportati pubblicamente."],
-      proceedings: [
-        "Procedimenti e decisioni giudiziarie oggetto di ampia cronaca: verificare sempre lo stato aggiornato da fonti ufficiali.",
-      ],
-      finalConvictions: [
-        "Eventuali sentenze definitive vanno riportate solo da fonti giudiziarie ufficiali aggiornate.",
-      ],
-      accusations: ["Distinguere accuse, fasi processuali e provvedimenti definitivi."],
-      publicOpinions: ["L'opinione pubblica è polarizzata; non costituisce fatto giuridico."],
+      verifiedFacts: ["Presidente del Senato (incarico pubblico)."],
+      proceedings: [],
+      finalConvictions: [],
+      accusations: [],
+      publicOpinions: [],
     },
-    sources: [{ title: "Copertura giornalistica pubblica", type: "giornalistico" }],
+    sources: [{ title: "Senato della Repubblica", type: "istituzionale" }],
+    wikidataId: "Q3791577",
     inferredScores: {
-      credibility: 12, experience: 8, competence: 15, leadership: 12,
-      communication: 18, popularity: 6, scandalRisk: 96, mediaConsensus: 8,
-      socialConsensus: 10, undecidedAppeal: 4, mobilization: 6,
-      trust: 8, polarization: 90, personalLoyalty: 5,
+      credibility: 52, experience: 82, competence: 58, leadership: 62,
+      communication: 55, popularity: 42, scandalRisk: 38, mediaConsensus: 48,
+      socialConsensus: 55, undecidedAppeal: 32, mobilization: 58,
+      trust: 48, polarization: 68, personalLoyalty: 72,
+    },
+  },
+  {
+    firstName: "Luigi",
+    lastName: "Di Maio",
+    aliases: ["Di Maio"],
+    identity: "politician",
+    category: "NATIONAL_PUBLIC",
+    biography: "Politico italiano; ex leader M5S e ministro degli Esteri.",
+    politicalHistory: ["Vicepresidente Consiglio", "Ministro Esteri", "Leader M5S"],
+    positions: ["Ministro degli Esteri (ex)", "Deputato"],
+    partyHistory: ["Movimento 5 Stelle", "Impegno Civico"],
+    mediaExposure: 78,
+    publicRecognition: 82,
+    defaultPartySlug: "movimento-5-stelle",
+    ideologyHint: -0.1,
+    controversies: {
+      verifiedFacts: ["Incarichi ministeriali pubblici."],
+      proceedings: [],
+      finalConvictions: [],
+      accusations: [],
+      publicOpinions: [],
+    },
+    sources: [{ title: "Camera dei deputati", type: "istituzionale" }],
+    wikidataId: "Q19874309",
+    inferredScores: {
+      credibility: 50, experience: 68, competence: 55, leadership: 58,
+      communication: 62, popularity: 45, scandalRisk: 35, mediaConsensus: 48,
+      socialConsensus: 52, undecidedAppeal: 40, mobilization: 55,
+      trust: 45, polarization: 60, personalLoyalty: 55,
+    },
+  },
+  {
+    firstName: "Roberto",
+    lastName: "Gualtieri",
+    aliases: ["Gualtieri"],
+    identity: "politician",
+    category: "NATIONAL_PUBLIC",
+    biography: "Economista e politico; sindaco di Roma; ex ministro dell'Economia.",
+    politicalHistory: ["Ministro Economia", "Europarlamentare", "Sindaco di Roma"],
+    positions: ["Sindaco di Roma", "ex Ministro"],
+    partyHistory: ["Partito Democratico"],
+    mediaExposure: 58,
+    publicRecognition: 65,
+    defaultPartySlug: "partito-democratico",
+    ideologyHint: -0.35,
+    controversies: {
+      verifiedFacts: ["Sindaco di Roma (incarico pubblico)."],
+      proceedings: [],
+      finalConvictions: [],
+      accusations: [],
+      publicOpinions: [],
+    },
+    sources: [{ title: "Comune di Roma", type: "istituzionale" }],
+    wikidataId: "Q3939434",
+    inferredScores: {
+      credibility: 62, experience: 75, competence: 72, leadership: 58,
+      communication: 52, popularity: 40, scandalRisk: 20, mediaConsensus: 52,
+      socialConsensus: 42, undecidedAppeal: 38, mobilization: 42,
+      trust: 55, polarization: 40, personalLoyalty: 45,
+    },
+  },
+  {
+    firstName: "Elon",
+    lastName: "Musk",
+    identity: "entrepreneur",
+    category: "NATIONAL_PUBLIC",
+    biography: "Imprenditore statunitense; CEO di Tesla e SpaceX; figura globale dell'innovazione tech.",
+    politicalHistory: [],
+    positions: ["CEO Tesla", "CEO SpaceX"],
+    partyHistory: [],
+    mediaExposure: 98,
+    publicRecognition: 95,
+    ideologyHint: 0.55,
+    controversies: {
+      verifiedFacts: ["Ruoli pubblici documentati nelle aziende citate."],
+      proceedings: [],
+      finalConvictions: [],
+      accusations: [],
+      publicOpinions: ["Figura altamente polarizzante a livello globale."],
+    },
+    sources: [{ title: "Wikidata", type: "wikipedia", url: "https://www.wikidata.org/wiki/Q317521" }],
+    wikidataId: "Q317521",
+    inferredScores: {
+      credibility: 45, experience: 90, competence: 85, leadership: 88,
+      communication: 75, popularity: 70, scandalRisk: 55, mediaConsensus: 50,
+      socialConsensus: 45, undecidedAppeal: 35, mobilization: 40,
+      trust: 40, polarization: 80, personalLoyalty: 50,
+    },
+  },
+  {
+    firstName: "Beppe",
+    lastName: "Grillo",
+    aliases: ["Grillo"],
+    identity: "former_politician",
+    category: "NATIONAL_PUBLIC",
+    biography: "Comico e fondatore del Movimento 5 Stelle; figura storica della politica italiana.",
+    politicalHistory: ["Fondatore M5S", "Campagna referendaria"],
+    positions: ["Fondatore M5S"],
+    partyHistory: ["Movimento 5 Stelle"],
+    mediaExposure: 85,
+    publicRecognition: 90,
+    defaultPartySlug: "movimento-5-stelle",
+    ideologyHint: -0.2,
+    controversies: {
+      verifiedFacts: ["Fondatore del Movimento 5 Stelle."],
+      proceedings: [],
+      finalConvictions: [],
+      accusations: [],
+      publicOpinions: ["Figura polarizzante."],
+    },
+    sources: [{ title: "Wikipedia", type: "wikipedia" }],
+    wikidataId: "Q376229",
+    inferredScores: {
+      credibility: 42, experience: 70, competence: 50, leadership: 72,
+      communication: 90, popularity: 55, scandalRisk: 45, mediaConsensus: 45,
+      socialConsensus: 60, undecidedAppeal: 38, mobilization: 70,
+      trust: 38, polarization: 85, personalLoyalty: 65,
     },
   },
   {
@@ -343,6 +466,7 @@ export const CURATED_PUBLIC_FIGURES: (Seed & { aliases?: string[] })[] = [
   {
     firstName: "Matteo",
     lastName: "Renzi",
+    aliases: ["Renzi"],
     identity: "former_politician",
     category: "NATIONAL_PUBLIC",
     biography: "Politico italiano; ex Presidente del Consiglio; fondatore di Italia Viva.",
@@ -422,6 +546,40 @@ export function findCuratedFigure(firstName: string, lastName: string) {
         .trim();
       if (norm === key) return rec;
     }
+  }
+  return null;
+}
+
+/** Cognome solo — se univoco nella KB, restituisce la figura. */
+export function findCuratedBySurname(surname: string) {
+  const norm = surname
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
+  if (!norm) return null;
+
+  const matches = CURATED_PUBLIC_FIGURES.filter((rec) => {
+    const last = rec.lastName
+      .toLowerCase()
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "");
+    if (last === norm) return true;
+    return (rec.aliases ?? []).some((a) => {
+      const alias = a
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .replace(/\s+/g, " ")
+        .trim();
+      return alias === norm;
+    });
+  });
+
+  if (matches.length === 1) return matches[0]!;
+  if (matches.length > 1) {
+    return [...matches].sort((a, b) => b.publicRecognition - a.publicRecognition)[0]!;
   }
   return null;
 }

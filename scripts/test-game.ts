@@ -162,6 +162,102 @@ async function testSinglePlayer() {
   assert(result.players.length >= 3, `Single player con partiti AI (${result.players.length} candidati)`);
 }
 
+async function testProgressiveTextShiftsPd() {
+  const progressive =
+    "Una società più giusta e democratica, aperta all'Europa, attenta ai diritti civili, al clima e alle nuove generazioni.";
+  const profile = await candidateRecognizer.recognize(
+    {
+      firstName: "Mario",
+      lastName: "Rossi",
+      description: "Giovane attivista progressista.",
+      program: progressive,
+    },
+    { slug: "partito-democratico", name: "PD", color: "#E4002B", ideologyScore: -0.35 },
+    progressive,
+  );
+  console.log(
+    `  Rossi/PD progressista → compat ${profile.compatibility}, swing ${profile.textSwingPts}, ideo ${profile.ideology.toFixed(2)}`,
+  );
+  assert(profile.ideology < -0.05, `Ideologia progressista (got ${profile.ideology})`);
+  assert((profile.textSwingPts ?? 0) > 0, `Testo coerente dà boost (got ${profile.textSwingPts})`);
+  assert(profile.themes!.length >= 2, "Almeno 2 temi rilevati");
+}
+
+async function testRightTextOnPdPenalty() {
+  const profile = await candidateRecognizer.recognize(
+    {
+      firstName: "Luigi",
+      lastName: "Bianchi",
+      description: "Leader sovranista e conservatore.",
+      program:
+        "Stop immigrazione, ordine e sicurezza, patriottismo economico, famiglia tradizionale, flat tax.",
+    },
+    { slug: "partito-democratico", name: "PD", color: "#E4002B", ideologyScore: -0.35 },
+  );
+  console.log(`  Bianchi/PD destra → compat ${profile.compatibility}, swing ${profile.textSwingPts}`);
+  assert(
+    profile.compatibility < 25 || (profile.textSwingPts ?? 0) < -0.5,
+    `Testo di destra su PD penalizza (compat ${profile.compatibility}, swing ${profile.textSwingPts})`,
+  );
+}
+
+async function testCustomPartyWorks() {
+  const profile = await candidateRecognizer.recognize(
+    {
+      firstName: "Anna",
+      lastName: "Verdi",
+      description: "Ambientalista e pacifista.",
+      program: "Transizione ecologica, diritti, Europa sociale, sanità pubblica.",
+    },
+    {
+      slug: "custom-test",
+      name: "Verdi Futuro",
+      color: "#009246",
+      ideologyScore: -0.7,
+      isCustom: true,
+    },
+  );
+  assert(profile.compatibility > 40, `Custom party + testo coerente (got ${profile.compatibility})`);
+  assert(!profile.isPublicFigure || profile.compatibility >= 0, "Custom party non crasha");
+}
+
+async function testSimulationTextDifference() {
+  const basePlayer: GamePlayer = {
+    id: "p1",
+    displayName: "Test",
+    party: { slug: "partito-democratico", name: "PD", color: "#E4002B", ideologyScore: -0.35 },
+    candidate: { firstName: "Mario", lastName: "Rossi", description: "Candidato generico." },
+    isHuman: true,
+  };
+  const progressivePlayer: GamePlayer = {
+    ...basePlayer,
+    candidate: {
+      ...basePlayer.candidate,
+      description: "Leader progressista europeista.",
+      program:
+        "Diritti civili, clima, welfare, sanità pubblica, Europa democratica, inclusione e parità.",
+    },
+  };
+  const [rBase, rProg] = await Promise.all([
+    gameSimulationEngine.simulate([basePlayer], {
+      mode: "singleplayer",
+      redistributionMode: "candidates_only",
+      realPartySlugs: [],
+      seed: 555,
+    }),
+    gameSimulationEngine.simulate([progressivePlayer], {
+      mode: "singleplayer",
+      redistributionMode: "candidates_only",
+      realPartySlugs: [],
+      seed: 555,
+    }),
+  ]);
+  const pctBase = rBase.players[0]!.percentage;
+  const pctProg = rProg.players[0]!.percentage;
+  console.log(`  Testo influenza simulazione: generico ${pctBase}% vs progressista ${pctProg}%`);
+  assert(pctProg > pctBase, `Programma progressista migliora risultato PD (${pctProg} vs ${pctBase})`);
+}
+
 async function testComputerHardWinRate() {
   let cpuWins = 0;
   const runs = 20;
@@ -199,6 +295,41 @@ async function testComputerHardWinRate() {
   assert(rate >= 0.45, `Computer difficile competitivo (win rate ${(rate * 100).toFixed(0)}%)`);
 }
 
+async function testSurnameOnlyRecognition() {
+  const parsed = (await import("../src/lib/game/parseCandidateName")).parseCandidateName("Meloni");
+  const profile = await candidateRecognizer.recognize(
+    {
+      firstName: parsed.firstName,
+      lastName: parsed.lastName,
+      description: "Leader di destra, Presidente del Consiglio.",
+    },
+    { slug: "fratelli-ditalia", name: "FdI", color: "#0A2F6B" },
+    "Sovranità nazionale, famiglia, ordine e sicurezza.",
+  );
+  console.log(
+    `  Cognome solo "Meloni" → ${profile.name}, pop ${profile.popularity}, compat ${profile.compatibility}`,
+  );
+  assert(profile.name.includes("Meloni"), `Nome corretto (got ${profile.name})`);
+  assert(profile.isPublicFigure, "Meloni riconosciuta da cognome solo");
+  assert(profile.popularity >= 55, `Popolarità Meloni alta (got ${profile.popularity})`);
+  assert(profile.compatibility >= 70, `Compatibilità FdI alta (got ${profile.compatibility})`);
+}
+
+async function testVpPreviewEffect() {
+  const profile = await candidateRecognizer.recognize(
+    {
+      firstName: "Giorgia",
+      lastName: "Meloni",
+      description: "Presidente del Consiglio, leader di Fratelli d'Italia.",
+    },
+    { slug: "fratelli-ditalia", name: "FdI", color: "#0A2F6B" },
+    "Sovranità e sicurezza.",
+    { firstName: "Ignazio", lastName: "La Russa" },
+  );
+  console.log(`  Meloni + La Russa VP → effetto VP ${profile.vicePresidentEffect.toFixed(1)}pp`);
+  assert(profile.vicePresidentEffect > 0, `VP coerente dà boost (got ${profile.vicePresidentEffect})`);
+}
+
 async function main() {
   console.log("\n=== Italia Elect Game — test suite ===\n");
 
@@ -206,8 +337,14 @@ async function main() {
   await testLeftProgram();
   testRedistributionWithoutFdi();
   await testMeloniVsSchlein();
+  await testSurnameOnlyRecognition();
+  await testVpPreviewEffect();
   await testRegionalMap();
   await testSinglePlayer();
+  await testProgressiveTextShiftsPd();
+  await testRightTextOnPdPenalty();
+  await testCustomPartyWorks();
+  await testSimulationTextDifference();
   await testComputerHardWinRate();
 
   console.log("\n✓ Tutti i test game passati\n");

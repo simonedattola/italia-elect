@@ -224,6 +224,12 @@ export function enrichProfileWithCandidateText(
   party: PartyDefinition,
   figure?: PublicFigureProfile,
 ): CandidateProfile & { partyCompatibility: number } {
+  const desc = input.description?.trim() ?? "";
+  const prog = input.program?.trim() ?? "";
+  if (desc.length + prog.length < 20) {
+    return { ...profile, partyCompatibility: profile.partyCompatibility };
+  }
+
   const signals = analyzeCandidateText(input.description, party, input.program);
   const reliableIdeology = hasReliableTextIdeology(signals);
   const manifestoOnly = reliableIdeology && signals.depth >= 50;

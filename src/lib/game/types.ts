@@ -53,6 +53,11 @@ export interface CandidateGameProfile {
   isPublicFigure: boolean;
   positionLabel: string;
   programSummary: string;
+  themes?: string[];
+  textDepth?: number;
+  textSwingPts?: number;
+  campaignImpact?: number;
+  recognitionNote?: string;
   vicePresidentEffect: number;
   expectedSwingPts: number;
 }

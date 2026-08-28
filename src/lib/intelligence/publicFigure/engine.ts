@@ -16,6 +16,7 @@ import { CONFIDENCE_AUTO_THRESHOLD } from "./types";
 import {
   CURATED_PUBLIC_FIGURES,
   findCuratedFigure,
+  findCuratedBySurname,
   normalizePersonKey,
 } from "./knowledgeBase";
 import { readFigureCache, writeFigureCache } from "./cache";
@@ -126,8 +127,15 @@ function fromCurated(
   firstName: string,
   lastName: string
 ): PublicFigureProfile | null {
-  const seed = findCuratedFigure(firstName, lastName);
+  let seed = findCuratedFigure(firstName, lastName);
+  if (!seed && firstName.toLowerCase() === lastName.toLowerCase()) {
+    seed = findCuratedBySurname(firstName);
+  }
   if (!seed) return null;
+
+  if (seed.identity === "media_figure" && seed.partyHistory.length === 0) {
+    return null;
+  }
 
   const brand = computePersonalBrand({
     publicRecognition: seed.publicRecognition,
@@ -193,7 +201,16 @@ export async function identifyPublicFigure(
 
   const threshold = opts?.confidenceThreshold ?? CONFIDENCE_AUTO_THRESHOLD;
 
-  // 1. Cache (salta se stiamo forzando un ID confermato)
+  // 1. Knowledge base curata (prioritaria — dati elettorali verificati)
+  if (!opts?.confirmedWikidataId) {
+    const curated = fromCurated(fn, ln);
+    if (curated) {
+      await writeFigureCache(curated);
+      return curated;
+    }
+  }
+
+  // 2. Cache locale
   if (!opts?.confirmedWikidataId) {
     const cached = await readFigureCache(fn, ln);
     if (
@@ -202,16 +219,12 @@ export async function identifyPublicFigure(
       !cached.needsConfirmation &&
       (cached.confidence ?? 0) >= threshold
     ) {
+      const kbMerge = fromCurated(fn, ln);
+      if (kbMerge) {
+        await writeFigureCache(kbMerge);
+        return kbMerge;
+      }
       return hydrate({ ...cached, fromCache: true, recognitionMethod: "cache" });
-    }
-  }
-
-  // 2. Knowledge base curata
-  if (!opts?.confirmedWikidataId) {
-    const curated = fromCurated(fn, ln);
-    if (curated) {
-      await writeFigureCache(curated);
-      return curated;
     }
   }
 

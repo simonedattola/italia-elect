@@ -1,40 +1,14 @@
 /**
- * Riconoscimento candidato — integra Wikipedia/Wikidata via motore esistente.
+ * Riconoscimento candidato — Wikipedia/Wikidata + analisi descrizione/programma.
  */
 import { resolveCandidateForSimulation } from "@/lib/simulation/resolveCandidate";
 import { buildIntelligenceProfile, candidateElectoralDelta } from "@/lib/intelligence/candidateProfile";
-import { getPartyOrThrow } from "@/lib/electoral/parties";
-import { programAnalyzer } from "./ProgramAnalyzer";
+import { analyzeCampaignText } from "./CampaignTextAnalyzer";
+import { proxyPartySlugForRecognition, resolveGameParty } from "./partyUtils";
+import { parseCandidateName } from "./parseCandidateName";
+import { swingFromVpProfile } from "./vpEffectFormula";
 import type { CandidateGameProfile, GameCandidateInput, GamePartyChoice } from "./types";
 import { clamp } from "@/lib/utils";
-import type { CoalitionFamily, IdeologySpectrum, PartyDefinition } from "@/types/simulation";
-
-export function customPartyDefinition(party: GamePartyChoice): PartyDefinition {
-  const score = party.ideologyScore ?? 0;
-  let ideology: IdeologySpectrum = "CENTER";
-  if (score <= -0.55) ideology = "FAR_LEFT";
-  else if (score <= -0.2) ideology = "LEFT";
-  else if (score <= -0.05) ideology = "CENTER_LEFT";
-  else if (score >= 0.55) ideology = "FAR_RIGHT";
-  else if (score >= 0.2) ideology = "RIGHT";
-  else if (score >= 0.05) ideology = "CENTER_RIGHT";
-
-  let coalitionFamily: CoalitionFamily = "ALTRO";
-  if (score <= -0.15) coalitionFamily = "SINISTRA";
-  else if (score >= 0.15) coalitionFamily = "DESTRA";
-  else coalitionFamily = "CENTRO";
-
-  return {
-    slug: party.slug,
-    name: party.name,
-    shortName: party.name.slice(0, 6),
-    color: party.color,
-    ideology,
-    ideologyScore: score,
-    coalitionFamily,
-    isCustom: true,
-  };
-}
 
 function ideologyLabel(score: number): string {
   if (score >= 0.55) return "Destra";
@@ -44,37 +18,71 @@ function ideologyLabel(score: number): string {
   return "Centro";
 }
 
+function recognitionNote(
+  isPublic: boolean,
+  figureName?: string,
+  method?: string,
+): string {
+  if (!isPublic) return "Candidato non riconosciuto — profilo da descrizione e programma.";
+  const parts = ["Figura pubblica riconosciuta"];
+  if (figureName) parts.push(figureName);
+  if (method && method !== "none") parts.push(`fonte: ${method.replace(/_/g, " ")}`);
+  return parts.join(" · ");
+}
+
 export class CandidateRecognizer {
   async recognize(
     candidate: GameCandidateInput,
     party: GamePartyChoice,
     program?: string,
+    vicePresident?: GameCandidateInput,
   ): Promise<CandidateGameProfile> {
+    const parsed = parseCandidateName(
+      `${candidate.firstName} ${candidate.lastName}`.trim(),
+    );
+    const normalizedCandidate: GameCandidateInput = {
+      ...candidate,
+      firstName: parsed.firstName,
+      lastName: parsed.lastName,
+    };
+
+    const partyDef = resolveGameParty(party);
+    const prog = program?.trim() ?? "";
+    const userDescription = normalizedCandidate.description?.trim() ?? "";
     const description =
-      candidate.description?.trim() ||
-      `${candidate.firstName} ${candidate.lastName}, candidato per ${party.name}.`;
+      userDescription ||
+      (prog.length > 30
+        ? `Candidato per ${party.name}. Programma: ${prog.slice(0, 120)}…`
+        : `${normalizedCandidate.firstName} ${normalizedCandidate.lastName}, candidato per ${party.name}.`);
+
+    const recognitionSlug = party.isCustom
+      ? proxyPartySlugForRecognition(party.ideologyScore ?? 0)
+      : party.slug;
+
     const resolved = await resolveCandidateForSimulation({
-      firstName: candidate.firstName,
-      lastName: candidate.lastName,
-      partySlug: party.slug,
+      firstName: normalizedCandidate.firstName,
+      lastName: normalizedCandidate.lastName,
+      partySlug: recognitionSlug,
       description,
-      program,
+      program: prog || undefined,
     });
 
     const profile = buildIntelligenceProfile(
       {
-        firstName: candidate.firstName,
-        lastName: candidate.lastName,
-        partySlug: party.slug,
-        description,
-        program,
+        firstName: normalizedCandidate.firstName,
+        lastName: normalizedCandidate.lastName,
+        partySlug: partyDef.slug,
+        description: userDescription,
+        program: prog,
       },
       resolved.recognitionForEngine,
       resolved.publicFigureForEngine,
+      partyDef,
     );
 
+    const fig = resolved.publicFigureForEngine;
     const naturalLeader =
-      resolved.publicFigureForEngine?.defaultPartySlug === party.slug;
+      !party.isCustom && fig?.defaultPartySlug === party.slug;
     const delta = candidateElectoralDelta(
       profile,
       undefined,
@@ -83,37 +91,101 @@ export class CandidateRecognizer {
       { naturalPartyLeader: naturalLeader },
     );
 
-    const prog =
-      program && program.length > 20
-        ? programAnalyzer.analyze(
-            program,
-            party.isCustom ? customPartyDefinition(party) : getPartyOrThrow(party.slug),
-          )
-        : null;
+    const campaign = analyzeCampaignText(description, prog, partyDef);
+    const hasUserText = userDescription.length > 25 || prog.length > 40;
 
-    const ideology =
-      prog?.ideology ??
-      (profile.partyCompatibility / 100) * (party.ideologyScore ?? 0) * 0.5 +
-        (party.ideologyScore ?? 0) * 0.5;
+    let compatibility = profile.partyCompatibility;
+    let textSwingPts = campaign.textSwingPts;
+    let campaignImpact = campaign.impactScore;
+    let credibility = clamp(
+      profile.credibility * 0.45 + campaign.credibility * 0.55,
+      10,
+      95,
+    );
+    let mobilization = profile.mobilization;
+
+    if (hasUserText) {
+      if (campaign.hasReliableIdeology && campaign.depth >= 40) {
+        const textWeight = clamp(campaign.depth / 100, 0.35, 0.75);
+        if (campaign.coherence >= 60 && campaign.ideology * partyDef.ideologyScore >= 0) {
+          compatibility = clamp(compatibility + campaign.textSwingPts * 1.2, 0, 98);
+        } else if (campaign.coherence < 45) {
+          compatibility = clamp(compatibility + campaign.textSwingPts * 1.5, 0, 98);
+        }
+        compatibility = Math.round(
+          compatibility * (1 - textWeight * 0.15) +
+            (compatibility + campaign.textSwingPts * 2) * (textWeight * 0.15),
+        );
+      }
+      mobilization = clamp(profile.mobilization + campaign.textSwingPts * 0.8, 0, 95);
+    } else if (profile.isPublicFigure) {
+      textSwingPts = 0;
+      campaignImpact = clamp(campaign.impactScore * 0.35 + 0.25, 0.2, 0.55);
+      credibility = profile.credibility;
+    }
+
+    const ideology = hasUserText && campaign.hasReliableIdeology
+      ? campaign.ideology
+      : fig?.ideologyHint ?? campaign.ideology;
+
+    const expectedSwingPts = clamp(
+      delta.expectedPts + textSwingPts,
+      -22,
+      12,
+    );
+
+    let vpEffect = 0;
+    if (vicePresident?.firstName?.trim()) {
+      const vpParsed = parseCandidateName(
+        `${vicePresident.firstName} ${vicePresident.lastName}`.trim(),
+      );
+      const vpProfile = await this.recognize(
+        { ...vicePresident, firstName: vpParsed.firstName, lastName: vpParsed.lastName },
+        party,
+        vicePresident.program,
+      );
+      vpEffect = swingFromVpProfile(
+        vpProfile.compatibility,
+        vpProfile.popularity,
+        compatibility,
+        vpProfile.isPublicFigure,
+      );
+    }
 
     return {
-      name: `${candidate.firstName} ${candidate.lastName}`,
-      firstName: candidate.firstName,
-      lastName: candidate.lastName,
+      name: `${normalizedCandidate.firstName} ${normalizedCandidate.lastName}`,
+      firstName: normalizedCandidate.firstName,
+      lastName: normalizedCandidate.lastName,
       partySlug: party.slug,
       popularity: clamp(profile.notoriety, 5, 98),
-      compatibility: profile.partyCompatibility,
+      compatibility: clamp(Math.round(compatibility * 10) / 10, 0, 98),
       ideology: clamp(ideology, -1, 1),
       leadership: profile.leadership,
-      mobilization: profile.mobilization,
-      credibility: prog?.credibility ?? profile.credibility,
+      mobilization,
+      credibility,
       isPublicFigure: profile.isPublicFigure,
       positionLabel: ideologyLabel(ideology),
-      programSummary: prog?.summary ?? "Nessun programma dettagliato.",
-      vicePresidentEffect: 0,
-      expectedSwingPts: delta.expectedPts,
+      programSummary: hasUserText
+        ? campaign.summary
+        : profile.isPublicFigure
+          ? `Profilo da dati pubblici${fig?.canonicalName ? ` · ${fig.canonicalName}` : ""}.`
+          : campaign.summary,
+      themes: campaign.themes,
+      textDepth: campaign.depth,
+      textSwingPts,
+      campaignImpact,
+      recognitionNote: recognitionNote(
+        profile.isPublicFigure,
+        fig?.canonicalName,
+        fig?.recognitionMethod,
+      ),
+      vicePresidentEffect: vpEffect,
+      expectedSwingPts,
     };
   }
 }
 
 export const candidateRecognizer = new CandidateRecognizer();
+
+// Re-export per compatibilità
+export { customPartyDefinition } from "./partyUtils";

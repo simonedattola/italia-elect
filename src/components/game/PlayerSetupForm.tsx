@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Input, Textarea } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -12,7 +12,9 @@ import {
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { PARTIES } from "@/lib/electoral/parties";
-import type { GamePlayer } from "@/lib/game/types";
+import { parseCandidateName } from "@/lib/game/parseCandidateName";
+import type { CandidateGameProfile, GamePlayer } from "@/lib/game/types";
+import { CandidateCard } from "./CandidateCard";
 import { nanoid } from "nanoid";
 
 export function PlayerSetupForm({
@@ -34,12 +36,86 @@ export function PlayerSetupForm({
   const [customIdeology, setCustomIdeology] = useState(0);
   const [description, setDescription] = useState("");
   const [program, setProgram] = useState("");
+  const [preview, setPreview] = useState<CandidateGameProfile | null>(null);
+  const [previewLoading, setPreviewLoading] = useState(false);
+  const previewSeq = useRef(0);
 
-  function splitName(full: string) {
-    const parts = full.trim().split(/\s+/);
-    if (parts.length < 2) return { firstName: parts[0] ?? "", lastName: parts[0] ?? "" };
-    return { firstName: parts[0]!, lastName: parts.slice(1).join(" ") };
-  }
+  const partyMeta = useMemo(() => {
+    if (customParty) {
+      return {
+        slug: "custom-preview",
+        name: customName.trim() || "Partito Custom",
+        color: customColor,
+        ideologyScore: customIdeology,
+        isCustom: true as const,
+      };
+    }
+    const p = PARTIES.find((x) => x.slug === partySlug)!;
+    return {
+      slug: p.slug,
+      name: p.name,
+      color: p.color,
+      ideologyScore: p.ideologyScore,
+    };
+  }, [customParty, customName, customColor, customIdeology, partySlug]);
+
+  useEffect(() => {
+    const parsed = parseCandidateName(fullName);
+    if (!parsed.firstName || !parsed.lastName) {
+      setPreview(null);
+      return;
+    }
+
+    const vpParsed = vpName.trim() ? parseCandidateName(vpName) : null;
+    const seq = ++previewSeq.current;
+    const controller = new AbortController();
+
+    const timer = setTimeout(async () => {
+      setPreviewLoading(true);
+      try {
+        const res = await fetch("/api/game/preview", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          signal: controller.signal,
+          body: JSON.stringify({
+            candidate: {
+              firstName: parsed.firstName,
+              lastName: parsed.lastName,
+              description,
+              program,
+            },
+            party: partyMeta,
+            vicePresident: vpParsed
+              ? {
+                  firstName: vpParsed.firstName,
+                  lastName: vpParsed.lastName,
+                }
+              : undefined,
+          }),
+        });
+        if (!res.ok) {
+          if (seq === previewSeq.current) setPreview(null);
+          return;
+        }
+        const data = await res.json();
+        if (seq === previewSeq.current) {
+          if (data.ok) setPreview(data.profile);
+          else setPreview(null);
+        }
+      } catch (e) {
+        if ((e as Error).name !== "AbortError" && seq === previewSeq.current) {
+          setPreview(null);
+        }
+      } finally {
+        if (seq === previewSeq.current) setPreviewLoading(false);
+      }
+    }, 650);
+
+    return () => {
+      clearTimeout(timer);
+      controller.abort();
+    };
+  }, [fullName, vpName, description, program, partyMeta]);
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -60,8 +136,8 @@ export function PlayerSetupForm({
             ideologyScore: p.ideologyScore,
           };
         })();
-    const cand = splitName(fullName);
-    const vp = vpName.trim() ? splitName(vpName) : undefined;
+    const cand = parseCandidateName(fullName);
+    const vp = vpName.trim() ? parseCandidateName(vpName) : undefined;
     onConfirm({
       id: nanoid(8),
       displayName,
@@ -85,7 +161,7 @@ export function PlayerSetupForm({
         <Label>Candidato (nome e cognome)</Label>
         <Input
           required
-          placeholder="es. Giorgia Meloni"
+          placeholder="es. Giorgia Meloni o solo Meloni"
           value={fullName}
           onChange={(e) => setFullName(e.target.value)}
         />
@@ -100,7 +176,7 @@ export function PlayerSetupForm({
           Crea partito custom
         </label>
         {customParty ? (
-          <div className="space-y-3 rounded-xl border border-white/10 p-3">
+          <div className="space-y-3 rounded-xl border border-[var(--border)] p-3">
             <Input
               placeholder="Nome partito"
               value={customName}
@@ -117,7 +193,9 @@ export function PlayerSetupForm({
               />
             </div>
             <div className="space-y-1">
-              <Label>Ideologia ({customIdeology > 0 ? "destra" : customIdeology < 0 ? "sinistra" : "centro"})</Label>
+              <Label>
+                Ideologia ({customIdeology > 0 ? "destra" : customIdeology < 0 ? "sinistra" : "centro"})
+              </Label>
               <input
                 type="range"
                 min={-1}
@@ -149,13 +227,31 @@ export function PlayerSetupForm({
         />
       </div>
       <div className="space-y-2">
-        <Label>Descrizione</Label>
-        <Textarea value={description} onChange={(e) => setDescription(e.target.value)} className="min-h-[72px]" />
+        <Label>Descrizione del candidato</Label>
+        <Textarea
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
+          placeholder="Chi è, che carisma ha, che storia politica…"
+          className="min-h-[80px]"
+        />
       </div>
       <div className="space-y-2">
-        <Label>Programma</Label>
-        <Textarea value={program} onChange={(e) => setProgram(e.target.value)} className="min-h-[88px]" />
+        <Label>Programma elettorale</Label>
+        <Textarea
+          value={program}
+          onChange={(e) => setProgram(e.target.value)}
+          placeholder="Temi, riforme, priorità — influenza fortemente il risultato"
+          className="min-h-[100px]"
+        />
       </div>
+
+      {(preview || previewLoading) && (
+        <div className="space-y-2">
+          <Label>Anteprima profilo (live)</Label>
+          <CandidateCard profile={previewLoading ? null : preview} loading={previewLoading} />
+        </div>
+      )}
+
       <Button type="submit" className="w-full">Conferma giocatore</Button>
     </form>
   );
