@@ -1,0 +1,73 @@
+[
+  {
+    "key": "benito_mussolini",
+    "names": ["Benito", "Mussolini"],
+    "ideologyScore": 0.95,
+    "reputation": 0.05,
+    "partyCompatibility": {
+      "lega": 0.5,
+      "fratelli-ditalia": 0.45,
+      "forza-italia": 0.4,
+      "partito-democratico": 0.02,
+      "movimento-5-stelle": 0.05,
+      "azione-iv": 0.08
+    },
+    "notes": "Figura storica estrema — compatibilità non nulla con sovranisti per retaggio ideologico."
+  },
+  {
+    "key": "silvio_berlusconi",
+    "names": ["Silvio", "Berlusconi"],
+    "ideologyScore": 0.55,
+    "reputation": 0.45,
+    "partyCompatibility": {
+      "forza-italia": 0.92,
+      "lega": 0.55,
+      "fratelli-ditalia": 0.5,
+      "partito-democratico": 0.15,
+      "movimento-5-stelle": 0.2
+    }
+  },
+  {
+    "key": "giorgia_meloni",
+    "names": ["Giorgia", "Meloni"],
+    "ideologyScore": 0.72,
+    "reputation": 0.68,
+    "partyCompatibility": {
+      "fratelli-ditalia": 0.92,
+      "lega": 0.65,
+      "forza-italia": 0.55,
+      "partito-democratico": 0.12,
+      "movimento-5-stelle": 0.1
+    }
+  },
+  {
+    "key": "alessandro_sallusti",
+    "names": ["Alessandro", "Sallusti"],
+    "ideologyScore": 0.7,
+    "reputation": 0.4,
+    "partyCompatibility": {
+      "partito-democratico": 0.12,
+      "fratelli-ditalia": 0.55,
+      "lega": 0.5,
+      "forza-italia": 0.48
+    }
+  },
+  {
+    "key": "roberto_vannacci",
+    "names": ["Roberto", "Vannacci"],
+    "ideologyScore": 0.78,
+    "reputation": 0.52,
+    "partyCompatibility": {
+      "futuro-nazionale": 0.95,
+      "fratelli-ditalia": 0.55,
+      "forza-italia": 0.42,
+      "lega": 0.18,
+      "azione-iv": 0.08,
+      "partito-democratico": 0.06,
+      "movimento-5-stelle": 0.12,
+      "avss": 0.04,
+      "piu-europa": 0.05
+    },
+    "notes": "Presidente FN — fondatore dopo rottura con la Lega (feb 2026)."
+  }
+]

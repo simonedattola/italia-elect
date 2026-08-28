@@ -30,6 +30,8 @@ export async function createComparison(slugs: string[]) {
     const map = asProvinceResults(s.provincialMap);
     const partyShare =
       national.find((r) => r.partySlug === s.candidate.partySlug)?.percentage ?? 0;
+    const seatsChamber =
+      national.find((r) => r.partySlug === s.candidate.partySlug)?.seatsChamber ?? 0;
     return {
       id: s.id,
       slug: s.slug,
@@ -39,6 +41,7 @@ export async function createComparison(slugs: string[]) {
       color: getParty(s.candidate.partySlug)?.color ?? "#666",
       winProbability: s.winProbability,
       nationalShare: partyShare,
+      seatsChamber,
       provincesWon: map.filter((p) => p.winnerSlug === s.candidate.partySlug).length,
     };
   });
@@ -106,6 +109,7 @@ export async function getComparison(slug: string) {
         color: string;
         winProbability: number;
         nationalShare: number;
+        seatsChamber?: number;
         provincesWon: number;
       }[];
       provinceDiffs: { provinceCode: string; winners: Record<string, string> }[];

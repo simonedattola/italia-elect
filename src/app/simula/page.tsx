@@ -1,18 +1,17 @@
 import type { Metadata } from "next";
+import { getPartiesForUi } from "@/actions/simulate";
 import { SimulationForm } from "@/components/simulation/simulation-form";
 
 export const metadata: Metadata = {
-  title: "Nuova simulazione",
-  description:
-    "Simula un'elezione nazionale italiana inserendo candidato, partito e programma.",
+  title: "Simula",
 };
 
-export default function SimulaPage() {
+export default async function SimulaPage() {
+  const parties = await getPartiesForUi();
+
   return (
-    <div className="hero-atmosphere">
-      <div className="mx-auto max-w-2xl px-4 py-12 sm:px-6 sm:py-16">
-        <SimulationForm />
-      </div>
+    <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 sm:py-12 lg:px-8">
+      <SimulationForm parties={parties} />
     </div>
   );
 }

@@ -3,6 +3,8 @@ import { notFound } from "next/navigation";
 import { getPublicSimulation } from "@/actions/simulate";
 import { ResultsView } from "@/components/simulation/results-view";
 
+export const dynamic = "force-dynamic";
+
 type Props = { params: Promise<{ shareSlug: string }> };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {

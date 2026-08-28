@@ -3,7 +3,10 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { getComparison } from "@/actions/compare";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { DiffVisualizer } from "@/components/simulation/DiffVisualizer";
 import { formatPercent } from "@/lib/utils";
+
+export const dynamic = "force-dynamic";
 
 type Props = { params: Promise<{ slug: string }> };
 
@@ -20,6 +23,7 @@ export default async function ConfrontoDetailPage({ params }: Props) {
   if (!data) notFound();
 
   const winner = data.results.candidates.find((c) => c.id === data.winnerId);
+  const [a, b] = data.results.candidates;
 
   return (
     <div className="mx-auto max-w-4xl space-y-8 px-4 py-12 sm:px-6">
@@ -55,10 +59,46 @@ export default async function ConfrontoDetailPage({ params }: Props) {
               </p>
               <p>Quota nazionale partito: {formatPercent(c.nationalShare)}</p>
               <p>Province conquistate: {c.provincesWon}</p>
+              {"seatsChamber" in c && c.seatsChamber != null ? (
+                <p>Seggi Camera: {c.seatsChamber as number}</p>
+              ) : null}
             </CardContent>
           </Card>
         ))}
       </div>
+
+      {a && b ? (
+        <Card>
+          <CardHeader>
+            <CardTitle>Diff A vs B</CardTitle>
+            <CardDescription>Metriche chiave affiancate</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <DiffVisualizer
+              a={{
+                name: a.name,
+                party: a.partyName,
+                winProbability: a.winProbability,
+                nationalShare: a.nationalShare,
+                seatsChamber:
+                  "seatsChamber" in a && typeof a.seatsChamber === "number"
+                    ? a.seatsChamber
+                    : a.provincesWon,
+              }}
+              b={{
+                name: b.name,
+                party: b.partyName,
+                winProbability: b.winProbability,
+                nationalShare: b.nationalShare,
+                seatsChamber:
+                  "seatsChamber" in b && typeof b.seatsChamber === "number"
+                    ? b.seatsChamber
+                    : b.provincesWon,
+              }}
+            />
+          </CardContent>
+        </Card>
+      ) : null}
 
       <Card>
         <CardHeader>

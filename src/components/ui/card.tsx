@@ -8,7 +8,7 @@ export function Card({
   return (
     <div
       className={cn(
-        "rounded-xl border border-[var(--border)] bg-[var(--card)] text-[var(--foreground)] shadow-sm",
+        "card-3d rounded-2xl border border-[var(--border)] bg-[var(--card)] text-[var(--foreground)] backdrop-blur-xl",
         className
       )}
       {...props}
@@ -20,7 +20,7 @@ export function CardHeader({
   className,
   ...props
 }: React.HTMLAttributes<HTMLDivElement>) {
-  return <div className={cn("flex flex-col gap-1.5 p-6", className)} {...props} />;
+  return <div className={cn("flex flex-col gap-1.5 p-6 sm:p-8", className)} {...props} />;
 }
 
 export function CardTitle({
@@ -48,5 +48,5 @@ export function CardContent({
   className,
   ...props
 }: React.HTMLAttributes<HTMLDivElement>) {
-  return <div className={cn("p-6 pt-0", className)} {...props} />;
+  return <div className={cn("p-6 pt-0 sm:p-8 sm:pt-0", className)} {...props} />;
 }

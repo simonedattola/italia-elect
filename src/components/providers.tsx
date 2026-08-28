@@ -4,6 +4,7 @@ import { ThemeProvider } from "next-themes";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useState } from "react";
 import { Toaster } from "sonner";
+import { TooltipProvider } from "@/components/ui/tooltip";
 
 export function Providers({ children }: { children: React.ReactNode }) {
   const [client] = useState(
@@ -16,10 +17,19 @@ export function Providers({ children }: { children: React.ReactNode }) {
   );
 
   return (
-    <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
+    <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false}>
       <QueryClientProvider client={client}>
-        {children}
-        <Toaster richColors position="top-center" />
+        <TooltipProvider delayDuration={200}>
+          {children}
+          <Toaster
+            theme="dark"
+            richColors
+            position="top-center"
+            toastOptions={{
+              className: "glass-strong !border-[var(--border)]",
+            }}
+          />
+        </TooltipProvider>
       </QueryClientProvider>
     </ThemeProvider>
   );

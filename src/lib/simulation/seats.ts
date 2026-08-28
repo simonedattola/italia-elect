@@ -64,4 +64,7 @@ export function allocateSenateSeats(results: PartyResult[]): SeatAllocation {
   );
 }
 
+/** Preferire allocateRosatellum per Camera/Senato misti (Fase 4). */
+export { allocateRosatellum, ROSATELLUM } from "../electoral/rosatellum";
+
 export { CHAMBER_TOTAL, SENATE_TOTAL };

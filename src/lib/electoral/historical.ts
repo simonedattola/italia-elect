@@ -101,6 +101,7 @@ export const HISTORICAL_NATIONAL: NationalSnapshot[] = [
       "movimento-5-stelle": 10.0,
       "forza-italia": 9.6,
       lega: 9.0,
+      "futuro-nazionale": 8.0,
       avss: 6.8,
       "azione-iv": 3.3,
       "piu-europa": 3.8,
@@ -181,12 +182,6 @@ export const PROVINCE_BIAS: Record<string, Record<string, number>> = {
   BA: { "movimento-5-stelle": 1.3, "partito-democratico": 1.0 },
   CT: { "movimento-5-stelle": 1.35, "forza-italia": 1.15 },
 };
-
-/** Baseline nazionale corrente (post-Europee 2024, calibrata) */
-export function getCurrentBaseline(): Record<string, number> {
-  const last = HISTORICAL_NATIONAL[HISTORICAL_NATIONAL.length - 1];
-  return { ...last.shares };
-}
 
 /** Serie storica per un partito (per grafici) */
 export function getPartyHistory(partySlug: string) {

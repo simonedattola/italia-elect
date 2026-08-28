@@ -38,8 +38,13 @@ export async function refreshElectoralData() {
 }
 
 export async function getDataUpdateLogs(limit = 20) {
-  return prisma.dataUpdateLog.findMany({
-    take: limit,
-    orderBy: { createdAt: "desc" },
-  });
+  try {
+    return await prisma.dataUpdateLog.findMany({
+      take: limit,
+      orderBy: { createdAt: "desc" },
+    });
+  } catch (e) {
+    console.error("getDataUpdateLogs failed:", e);
+    return [];
+  }
 }

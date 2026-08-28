@@ -1,0 +1,30 @@
+{
+  "shares": {
+    "fratelli-ditalia": 28.287837080688753,
+    "lega": 4.8584073573191935,
+    "forza-italia": 9.059556916783823,
+    "partito-democratico": 23.14765310359067,
+    "movimento-5-stelle": 12.096461179389685,
+    "azione-iv": 3.314937800501831,
+    "avss": 6.758965014613065,
+    "piu-europa": 3.018349625519313,
+    "italexit": 1.3030810639823567,
+    "futuro-nazionale": 8.154750857611313
+  },
+  "institutes": [
+    "SWG",
+    "YouTrend / AGI",
+    "Ipsos",
+    "EMG",
+    "Termometro Politico"
+  ],
+  "asOf": "2026-08-27T23:06:48.207Z",
+  "sources": [
+    "SWG:2026-07-20",
+    "YouTrend / AGI:2026-07-12",
+    "Ipsos:2026-06-28",
+    "EMG:2026-06-15",
+    "Termometro Politico:2026-07-25"
+  ],
+  "windowDays": 30
+}

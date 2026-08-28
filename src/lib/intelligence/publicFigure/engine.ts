@@ -2,8 +2,8 @@
  * Public Figure Recognition Engine — Entity Resolution
  *
  * Pipeline:
- * 1. Cache locale
- * 2. Knowledge base curata
+ * 1. Knowledge base curata (priorità su cache errata)
+ * 2. Cache locale
  * 3. Wikidata → Wikipedia → DBpedia → istituzionale
  * 4. LLM synthesis (opzionale)
  * 5. CandidateProfile strutturato
@@ -167,6 +167,7 @@ function fromCurated(
     wikidataId: seed.wikidataId,
     wikipediaUrl: seed.wikipediaUrl,
     defaultPartySlug: seed.defaultPartySlug,
+    incompatiblePartySlugs: seed.incompatiblePartySlugs,
     ideologyHint: seed.ideologyHint,
     inferredScores: seed.inferredScores,
     personalBrandScore: brand.score,
@@ -193,7 +194,16 @@ export async function identifyPublicFigure(
 
   const threshold = opts?.confidenceThreshold ?? CONFIDENCE_AUTO_THRESHOLD;
 
-  // 1. Cache (salta se stiamo forzando un ID confermato)
+  // 2. Knowledge base curata (priorità su cache potenzialmente errata)
+  if (!opts?.confirmedWikidataId) {
+    const curated = fromCurated(fn, ln);
+    if (curated) {
+      await writeFigureCache(curated);
+      return curated;
+    }
+  }
+
+  // 1. Cache
   if (!opts?.confirmedWikidataId) {
     const cached = await readFigureCache(fn, ln);
     if (
@@ -203,15 +213,6 @@ export async function identifyPublicFigure(
       (cached.confidence ?? 0) >= threshold
     ) {
       return hydrate({ ...cached, fromCache: true, recognitionMethod: "cache" });
-    }
-  }
-
-  // 2. Knowledge base curata
-  if (!opts?.confirmedWikidataId) {
-    const curated = fromCurated(fn, ln);
-    if (curated) {
-      await writeFigureCache(curated);
-      return curated;
     }
   }
 

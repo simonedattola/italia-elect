@@ -61,7 +61,6 @@ function estimateNotoriety(entity: RetrievedEntity, scope: ScopeCategory): numbe
 }
 
 function buildInferred(notoriety: number, role: RoleCategory, polarizationSeed: number) {
-  const pol = role === "politician" ? Math.min(90, 45 + notoriety * 0.35) : 40;
   return {
     credibility: Math.round(42 + notoriety * 0.2),
     experience: role === "politician" ? Math.round(50 + notoriety * 0.35) : 40,

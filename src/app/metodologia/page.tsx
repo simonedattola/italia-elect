@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { getDataUpdateLogs } from "@/actions/data";
 
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
   title: "Metodologia e fonti",
   description:
@@ -11,8 +13,9 @@ export default async function MetodologiaPage() {
   const logs = await getDataUpdateLogs(10);
 
   return (
-    <div className="mx-auto max-w-3xl px-4 py-12 sm:px-6">
-      <h1 className="font-[family-name:var(--font-display)] text-4xl text-[var(--it-blue)]">
+    <div className="hero-atmosphere min-h-[calc(100vh-4rem)]">
+      <div className="mx-auto max-w-3xl px-4 py-12 sm:px-6 lg:px-8">
+      <h1 className="text-4xl font-semibold tracking-tight text-white">
         Metodologia
       </h1>
       <p className="mt-3 text-lg text-[var(--muted)]">
@@ -110,6 +113,7 @@ export default async function MetodologiaPage() {
             semplificazione proporzionale a scopo illustrativo.
           </p>
         </section>
+      </div>
       </div>
     </div>
   );

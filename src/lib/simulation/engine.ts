@@ -3,7 +3,6 @@ import type {
   CandidateProfile,
   ModelMeta,
   PartyResult,
-  ProvinceResult,
   SimulationOutput,
 } from "@/types/simulation";
 import type {
@@ -11,19 +10,21 @@ import type {
   InfluenceFactor,
   SimulationScenarios,
 } from "@/types/intelligence";
+import type { UiScenarioConfig } from "@/types/scenario";
+import { COALITION_OPTIONS, DEFAULT_UI_SCENARIO } from "@/types/scenario";
 import type { PublicFigureProfile } from "@/lib/intelligence/publicFigure/types";
 import { PARTIES, getPartyOrThrow } from "@/lib/electoral/parties";
-import { PROVINCES } from "@/lib/electoral/provinces";
-import {
-  AREA_BIAS,
-  PROVINCE_BIAS,
-  getCurrentBaseline,
-  getPartyHistory,
-} from "@/lib/electoral/historical";
+import { getPartyHistory } from "@/lib/electoral/historical";
+import { getPollOnlyShares } from "@/lib/electoral/dynamicBaseline";
+import { buildProvincialMapFromNational } from "@/lib/electoral/provincialMap";
 import { buildIntelligenceProfile, candidateElectoralDelta } from "@/lib/intelligence/candidateProfile";
 import { recognizeCandidate } from "@/lib/intelligence/candidateRecognition";
 import { buildContextBundle } from "@/lib/intelligence/contextEngine";
-import { allocateChamberSeats, allocateSenateSeats } from "@/lib/simulation/seats";
+import {
+  allocateChamberSeats,
+  allocateSenateSeats,
+  allocateRosatellum,
+} from "@/lib/simulation/seats";
 import { buildCoalitions } from "@/lib/simulation/coalitions";
 import {
   clamp,
@@ -33,7 +34,7 @@ import {
   sampleNormal,
 } from "@/lib/utils";
 
-const MODEL_VERSION = "2.3.0-electoral-compatibility";
+const MODEL_VERSION = "4.1.0-ui-scenario";
 const DEFAULT_RUNS = 10_000;
 
 export interface EngineInput {
@@ -45,6 +46,8 @@ export interface EngineInput {
   /** Profilo da Public Figure Recognition Engine (preferito) */
   publicFigure?: PublicFigureProfile;
   recognition?: import("@/types/intelligence").RecognizedCandidate;
+  /** Override UI Scenario Editor (Fase 5) */
+  scenario?: Partial<UiScenarioConfig>;
 }
 
 export type SimulationOutputV2 = SimulationOutput & {
@@ -63,7 +66,21 @@ export type SimulationOutputV2 = SimulationOutput & {
  * 5. Scenari best/worst + probabilità vittoria
  */
 export function runSimulation(input: EngineInput): SimulationOutputV2 {
-  const seed = input.seed ?? Math.floor(Math.random() * 1e9);
+  const scenario: UiScenarioConfig = {
+    ...DEFAULT_UI_SCENARIO,
+    ...input.scenario,
+    partyVoteAdjustments: {
+      ...DEFAULT_UI_SCENARIO.partyVoteAdjustments,
+      ...(input.scenario?.partyVoteAdjustments ?? {}),
+    },
+    activeCoalitions: {
+      ...DEFAULT_UI_SCENARIO.activeCoalitions,
+      ...(input.scenario?.activeCoalitions ?? {}),
+    },
+  };
+  if (scenario.uiMode === "fun") scenario.chaosMode = true;
+
+  const seed = input.seed ?? scenario.seed ?? Math.floor(Math.random() * 1e9);
   const runs =
     input.runs ??
     Number(process.env.SIMULATION_MONTE_CARLO_RUNS || DEFAULT_RUNS);
@@ -105,6 +122,8 @@ export function runSimulation(input: EngineInput): SimulationOutputV2 {
       .compatibilityBreakdown?.categoricalRejection
   );
   const leaderParty = getPartyOrThrow(input.candidate.partySlug);
+  const naturalPartyLeader =
+    input.publicFigure?.defaultPartySlug === leaderParty.slug;
 
   const context =
     input.context ??
@@ -112,14 +131,16 @@ export function runSimulation(input: EngineInput): SimulationOutputV2 {
       profile,
       leaderPartySlug: leaderParty.slug,
       candidateName: `${input.candidate.firstName} ${input.candidate.lastName}`,
+      naturalPartyLeader,
     });
 
-  const historical = getCurrentBaseline();
+  const historical = getPollOnlyShares();
   let cand = candidateElectoralDelta(
     profile,
     personalBrand,
     personalImpact,
-    categoricalRejection
+    categoricalRejection,
+    { naturalPartyLeader },
   );
   const w = context.weights;
 
@@ -138,6 +159,10 @@ export function runSimulation(input: EngineInput): SimulationOutputV2 {
     partyIdentityWeight: w.partyIdentity,
     historicalShare: historical[leaderParty.slug] ?? 5,
     partyCompatibility: profile.partyCompatibility,
+    naturalPartyLeader,
+    kbPartyCompatibility:
+      (profile as { kbPartyCompatibility?: number }).kbPartyCompatibility ??
+      profile.partyCompatibility,
   });
 
   // Sanity check: compatibilità bassissima non può lasciare il partito vicino allo storico
@@ -166,14 +191,20 @@ export function runSimulation(input: EngineInput): SimulationOutputV2 {
     }
   }
 
+  // Scenario Editor: adjustment manuali ±pp sul prior atteso
+  applyPartyAdjustments(expectedShares, scenario.partyVoteAdjustments);
+
   const samples: Record<string, number[]> = {};
   for (const p of PARTIES) samples[p.slug] = [];
 
+  const turnoutFactor = clamp((scenario.turnout - 50) / 40, 0, 1);
   const volatility =
-    0.85 +
-    (1 - profile.partyCompatibility / 100) * 0.35 +
-    context.economy.abstentionBoost * 0.25 +
-    w.events * 0.4;
+    (0.85 +
+      (1 - profile.partyCompatibility / 100) * 0.35 +
+      context.economy.abstentionBoost * 0.25 +
+      w.events * 0.4 +
+      (1 - turnoutFactor) * 0.35) *
+    (scenario.chaosMode ? 1.85 : 1);
 
   for (let i = 0; i < runs; i++) {
     // Eventi casuali residui (± shock)
@@ -207,19 +238,58 @@ export function runSimulation(input: EngineInput): SimulationOutputV2 {
     };
   }).sort((a, b) => b.percentage - a.percentage);
 
-  const chamberSeats = allocateChamberSeats(nationalResults);
-  const senateSeats = allocateSenateSeats(nationalResults);
+  let chamberSeats = allocateChamberSeats(nationalResults);
+  let senateSeats = allocateSenateSeats(nationalResults);
+
+  if (scenario.useRosatellum) {
+    const coalitionsMap: Record<string, string[]> = {};
+    for (const c of COALITION_OPTIONS) {
+      if (scenario.activeCoalitions[c.id] !== false) {
+        coalitionsMap[c.id] = [...c.parties];
+      }
+    }
+    const shares: Record<string, number> = Object.fromEntries(
+      nationalResults.map((r) => [r.partySlug, r.percentage]),
+    );
+    for (const [slug, pct] of Object.entries(shares)) {
+      if (pct < scenario.partyThreshold) {
+        const inActiveCoal = Object.values(coalitionsMap).some((m) =>
+          m.includes(slug),
+        );
+        if (!inActiveCoal) shares[slug] = 0;
+      }
+    }
+    const rosa = allocateRosatellum({
+      nationalShares: shares,
+      coalitions: coalitionsMap,
+      seed,
+    });
+    chamberSeats = {
+      total: rosa.chamber.total,
+      byParty: rosa.chamber.byParty,
+      majorityThreshold: rosa.chamber.majorityThreshold,
+    };
+    senateSeats = {
+      total: rosa.senate.total,
+      byParty: rosa.senate.byParty,
+      majorityThreshold: rosa.senate.majorityThreshold,
+    };
+  }
+
   for (const r of nationalResults) {
     r.seatsChamber = chamberSeats.byParty[r.partySlug] ?? 0;
     r.seatsSenate = senateSeats.byParty[r.partySlug] ?? 0;
   }
 
   const coalitions = buildCoalitions(nationalResults, chamberSeats, senateSeats);
-  const provincialMap = buildProvincialMap(
+  const provincialMap = buildProvincialMapFromNational(
     expectedShares,
-    leaderParty.slug,
-    cand.multiplier,
-    rng
+    {
+      leaderSlug: leaderParty.slug,
+      leaderMult: cand.multiplier * (scenario.chaosMode ? 1.25 : 1),
+      seed: seed,
+      turnoutBase: scenario.turnout,
+    },
   );
 
   let wins = 0;
@@ -263,6 +333,7 @@ export function runSimulation(input: EngineInput): SimulationOutputV2 {
     leaderMean: round1(mean(leaderSorted)),
     leaderBest: round1(percentile(leaderSorted, 90)),
     leaderWorst: round1(percentile(leaderSorted, 10)),
+    uiScenario: scenario,
   };
 
   const modelMeta: ModelMeta = {
@@ -281,7 +352,10 @@ export function runSimulation(input: EngineInput): SimulationOutputV2 {
       "Bayesian baseline blend",
       "Sanity check compatibilità",
       "Monte Carlo Simulation",
-      "Allocazione seggi proporzionale (semplificata)",
+      scenario.useRosatellum
+        ? "Rosatellum (uninominale FPTP + proporzionale Hare)"
+        : "Allocazione seggi proporzionale (semplificata)",
+      "UI Scenario Editor overrides",
     ],
     monteCarloRuns: runs,
     seed,
@@ -296,6 +370,10 @@ export function runSimulation(input: EngineInput): SimulationOutputV2 {
       "compatibilità partito",
       "segmenti elettorali",
       "volatilità / trasferimenti",
+      `uiMode=${scenario.uiMode}`,
+      `chaos=${scenario.chaosMode}`,
+      `turnout=${scenario.turnout}`,
+      `threshold=${scenario.partyThreshold}`,
     ],
     dataSources: context.sources.slice(0, 12),
     disclaimer: context.disclaimer,
@@ -320,6 +398,20 @@ export function runSimulation(input: EngineInput): SimulationOutputV2 {
   };
 }
 
+function applyPartyAdjustments(
+  shares: Record<string, number>,
+  adjustments: Record<string, number>,
+) {
+  for (const [slug, delta] of Object.entries(adjustments)) {
+    if (!delta) continue;
+    shares[slug] = Math.max(0.2, (shares[slug] ?? 0) + delta);
+  }
+  const sum = Object.values(shares).reduce((a, b) => a + b, 0) || 1;
+  for (const k of Object.keys(shares)) {
+    shares[k] = (shares[k]! / sum) * 100;
+  }
+}
+
 function applyCandidateToBaseline(opts: {
   contextBaseline: Record<string, number>;
   leaderSlug: string;
@@ -328,6 +420,8 @@ function applyCandidateToBaseline(opts: {
   partyIdentityWeight: number;
   historicalShare: number;
   partyCompatibility: number;
+  naturalPartyLeader?: boolean;
+  kbPartyCompatibility?: number;
 }): Record<string, number> {
   const {
     contextBaseline,
@@ -337,15 +431,33 @@ function applyCandidateToBaseline(opts: {
     partyIdentityWeight,
     historicalShare,
     partyCompatibility,
+    naturalPartyLeader,
+    kbPartyCompatibility = partyCompatibility,
   } = opts;
 
   const raw: Record<string, number> = { ...contextBaseline };
   const baseLeader = raw[leaderSlug] ?? historicalShare;
   const compat = partyCompatibility / 100;
+  const naturalLeader = naturalPartyLeader && compat >= 0.65 && !cand.categoricalRejection;
 
   let newLeader: number;
 
-  if (cand.categoricalRejection) {
+  if (naturalLeader) {
+    // Sondaggi già includono il leader; la descrizione utente modula intorno al baseline.
+    const compatDelta = partyCompatibility - kbPartyCompatibility;
+    const marginalFromText = compatDelta * 0.1;
+    const marginalFromProfile =
+      cand.attractionPts * candidateWeight * 0.4 -
+      cand.rejectionPts * 0.2 * (1 - compat) +
+      cand.expectedPts * candidateWeight * 0.22;
+    const marginal = marginalFromText + marginalFromProfile;
+    const lowFloor =
+      partyCompatibility < 45
+        ? baseLeader * (0.42 + compat * 0.38)
+        : baseLeader * 0.86;
+    const highCap = baseLeader * (1.06 + Math.max(0, compatDelta) * 0.003);
+    newLeader = clamp(baseLeader + marginal, lowFloor, highCap);
+  } else if (cand.categoricalRejection) {
     // Rifiuto categorico: la notorietà NON preserva il voto storico.
     const toxicity = 0.55 + (cand.personalImpactScore / 100) * 0.35;
     const retained = clamp(
@@ -449,47 +561,6 @@ function noisyDraw(
     raw[slug] = Math.max(0.1, sampleNormal(rng, mu, sigma));
   }
   return normalize(raw);
-}
-
-function buildProvincialMap(
-  national: Record<string, number>,
-  leaderSlug: string,
-  leaderMult: number,
-  rng: () => number
-): ProvinceResult[] {
-  return PROVINCES.map((prov) => {
-    const areaBias = AREA_BIAS[prov.area] ?? {};
-    const provBias = PROVINCE_BIAS[prov.code] ?? {};
-    const local: Record<string, number> = {};
-    for (const p of PARTIES) {
-      const ab = areaBias[p.slug] ?? 1;
-      const pb = provBias[p.slug] ?? 1;
-      let v = (national[p.slug] ?? 0) * ab * pb;
-      if (p.slug === leaderSlug) v *= 0.95 + 0.1 * Math.min(leaderMult, 1.4);
-      v *= 0.97 + rng() * 0.06;
-      local[p.slug] = v;
-    }
-    const normed = normalize(local);
-    const ranked = Object.entries(normed).sort((a, b) => b[1] - a[1]);
-    const winnerSlug = ranked[0][0];
-    const winner = getPartyOrThrow(winnerSlug);
-    return {
-      provinceCode: prov.code,
-      provinceName: prov.name,
-      regionName: prov.regionName,
-      winnerSlug,
-      winnerName: winner.shortName,
-      winnerColor: winner.color,
-      percentage: round1(ranked[0][1]),
-      swing: round1(ranked[0][1] - (national[winnerSlug] ?? 0)),
-      turnout: round1(56 + rng() * 20),
-      topParties: ranked.slice(0, 4).map(([slug, percentage]) => ({
-        slug,
-        percentage: round1(percentage),
-        color: getPartyOrThrow(slug).color,
-      })),
-    };
-  });
 }
 
 function normalize(shares: Record<string, number>): Record<string, number> {

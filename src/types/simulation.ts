@@ -24,6 +24,10 @@ export interface PartyDefinition {
   ideologyScore: number; // -1 … +1
   coalitionFamily: CoalitionFamily;
   foundedYear?: number;
+  /** Partito riconosciuto / proposto automaticamente (UI badge) */
+  aiDetected?: boolean;
+  /** Creato dall'utente in /crea-partito */
+  isCustom?: boolean;
 }
 
 export interface CandidateInput {
@@ -83,6 +87,8 @@ export interface ProvinceResult {
   swing: number;
   turnout: number;
   topParties: { slug: string; percentage: number; color: string }[];
+  /** Distribuzione completa locale (per aggregazione regionale) */
+  partyShares?: Record<string, number>;
 }
 
 export interface SeatAllocation {

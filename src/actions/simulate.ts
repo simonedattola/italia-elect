@@ -5,7 +5,9 @@ import { nanoid } from "nanoid";
 import { prisma } from "@/lib/prisma";
 import { runSimulation } from "@/lib/simulation/engine";
 import { generateAIAnalysis } from "@/lib/ai/generate";
-import { PARTIES } from "@/lib/electoral/parties";
+import { PARTIES, getParty } from "@/lib/electoral/parties";
+import { refreshParties } from "@/lib/electoral/partyRegistryServer";
+import { resolveCandidateForSimulation } from "@/lib/simulation/resolveCandidate";
 import { recognizeCandidate, recognizeCandidateAsync } from "@/lib/intelligence/candidateRecognition";
 import { identifyPublicFigure } from "@/lib/intelligence/publicFigure/engine";
 import {
@@ -18,11 +20,14 @@ import {
   toJson,
 } from "@/lib/json";
 import type { InfluenceFactor, SimulationScenarios } from "@/types/intelligence";
+import type { UiScenarioConfig } from "@/types/scenario";
+import { DEFAULT_UI_SCENARIO } from "@/types/scenario";
+import { buildFunAnalysis } from "@/lib/ai/funAnalysis";
 
 const candidateSchema = z.object({
   firstName: z.string().min(1).max(80),
   lastName: z.string().min(1).max(80),
-  partySlug: z.string().refine((s) => PARTIES.some((p) => p.slug === s), {
+  partySlug: z.string().refine((s) => getParty(s) !== undefined, {
     message: "Partito non valido",
   }),
   description: z.string().min(20).max(5000),
@@ -32,6 +37,18 @@ const candidateSchema = z.object({
   confirmedWikidataId: z.string().max(32).optional(),
   /** Procedi come sconosciuto nonostante omonimi ambigui */
   proceedAsUnknown: z.boolean().optional(),
+  scenario: z
+    .object({
+      uiMode: z.enum(["analyst", "fun"]).optional(),
+      chaosMode: z.boolean().optional(),
+      partyVoteAdjustments: z.record(z.string(), z.number()).optional(),
+      activeCoalitions: z.record(z.string(), z.boolean()).optional(),
+      partyThreshold: z.number().min(0).max(10).optional(),
+      turnout: z.number().min(50).max(90).optional(),
+      useRosatellum: z.boolean().optional(),
+      seed: z.number().optional(),
+    })
+    .optional(),
 });
 
 export type ConfirmationOption = {
@@ -116,6 +133,8 @@ async function upsertCandidateCache(
 export async function createSimulation(
   raw: z.infer<typeof candidateSchema>
 ): Promise<SimulateState> {
+  await refreshParties();
+
   const parsed = candidateSchema.safeParse(raw);
   if (!parsed.success) {
     return { ok: false, error: parsed.error.issues[0]?.message ?? "Dati non validi" };
@@ -123,24 +142,35 @@ export async function createSimulation(
 
   const data = parsed.data;
   const seed = Math.floor(Math.random() * 1e9);
+  const uiScenario: UiScenarioConfig = {
+    ...DEFAULT_UI_SCENARIO,
+    ...(data.scenario as Partial<UiScenarioConfig> | undefined),
+    partyVoteAdjustments: {
+      ...DEFAULT_UI_SCENARIO.partyVoteAdjustments,
+      ...(data.scenario?.partyVoteAdjustments ?? {}),
+    },
+    activeCoalitions: {
+      ...DEFAULT_UI_SCENARIO.activeCoalitions,
+      ...(data.scenario?.activeCoalitions ?? {}),
+    },
+  };
+  if (uiScenario.uiMode === "fun") uiScenario.chaosMode = true;
 
   try {
-    // PRIORITÀ: Entity Resolution PRIMA della simulazione
-    const identified = await recognizeCandidateAsync(
-      data.firstName,
-      data.lastName,
-      data.partySlug,
-      {
-        description: data.description,
-        confirmedWikidataId: data.confirmedWikidataId,
-      }
-    );
+    const resolvedEarly = await resolveCandidateForSimulation({
+      firstName: data.firstName,
+      lastName: data.lastName,
+      partySlug: data.partySlug,
+      description: data.description,
+      program: data.program,
+      confirmedWikidataId: data.confirmedWikidataId,
+      proceedAsUnknown: data.proceedAsUnknown,
+    });
 
-    const fig = identified.publicFigure;
+    const fig = resolvedEarly.publicFigureForEngine;
 
-    // Omonimi / bassa confidenza: chiedi conferma (salvo proceedAsUnknown)
     if (
-      fig.needsConfirmation &&
+      resolvedEarly.identified.publicFigure.needsConfirmation &&
       !data.confirmedWikidataId &&
       !data.proceedAsUnknown
     ) {
@@ -160,24 +190,7 @@ export async function createSimulation(
       };
     }
 
-    // proceedAsUnknown → forza profilo non pubblico per il motore
-    const publicFigureForEngine =
-      data.proceedAsUnknown && !data.confirmedWikidataId
-        ? {
-            ...fig,
-            publicFigure: false,
-            category: "UNKNOWN" as const,
-            roleCategory: "unknown" as const,
-            insufficientData: true,
-            needsConfirmation: false,
-            confidence: 0,
-            personalBrandScore: Math.min(fig.personalBrandScore, 18),
-            notorietyScore: 10,
-            publicRecognition: 10,
-            message:
-              "Candidato trattato come non riconosciuto su richiesta utente.",
-          }
-        : fig;
+    const { publicFigureForEngine, recognitionForEngine } = resolvedEarly;
 
     const output = runSimulation({
       candidate: {
@@ -189,15 +202,8 @@ export async function createSimulation(
         photoUrl: data.photoUrl || undefined,
       },
       seed,
-      recognition: {
-        ...identified,
-        category: publicFigureForEngine.publicFigure
-          ? identified.category
-          : "UNKNOWN",
-        notoriety: publicFigureForEngine.publicFigure
-          ? identified.notoriety
-          : Math.min(identified.notoriety, 20),
-      },
+      scenario: uiScenario,
+      recognition: recognitionForEngine,
       publicFigure: publicFigureForEngine,
     });
 
@@ -210,6 +216,12 @@ export async function createSimulation(
     );
 
     const analysis = await generateAIAnalysis(data, output, output.profile);
+    const funAnalysis = buildFunAnalysis(data, output, uiScenario);
+    const scenariosPayload: SimulationScenarios = {
+      ...output.scenarios,
+      uiScenario,
+      funAnalysis,
+    };
 
     const candidate = await prisma.candidate.create({
       data: {
@@ -242,16 +254,25 @@ export async function createSimulation(
         analysis,
         modelMeta: toJson(output.modelMeta),
         influenceFactors: toJson(output.influenceFactors),
-        scenarios: toJson(output.scenarios),
+        scenarios: toJson(scenariosPayload),
       },
     });
 
     return { ok: true, id: simulation.id, slug: simulation.slug };
   } catch (e) {
     console.error(e);
+    const msg = e instanceof Error ? e.message : "Errore durante la simulazione";
+    if (/DATABASE_URL|Can't reach database|ECONNREFUSED|P1001/i.test(msg)) {
+      return {
+        ok: false,
+        error:
+          "Database non raggiungibile. Su Vercel imposta DATABASE_URL con un Postgres cloud " +
+          "(Neon/Vercel Postgres, non localhost) e fai Redeploy.",
+      };
+    }
     return {
       ok: false,
-      error: e instanceof Error ? e.message : "Errore durante la simulazione",
+      error: msg,
     };
   }
 }
@@ -296,24 +317,29 @@ export async function getSimulationBySlug(slug: string) {
 }
 
 export async function listSimulations(limit = 30) {
-  const rows = await prisma.simulation.findMany({
-    take: limit,
-    orderBy: { createdAt: "desc" },
-    include: { candidate: true },
-  });
+  try {
+    const rows = await prisma.simulation.findMany({
+      take: limit,
+      orderBy: { createdAt: "desc" },
+      include: { candidate: true },
+    });
 
-  return rows.map((s) => ({
-    id: s.id,
-    slug: s.slug,
-    createdAt: s.createdAt.toISOString(),
-    winProbability: s.winProbability,
-    confidenceLow: s.confidenceLow,
-    confidenceHigh: s.confidenceHigh,
-    candidateName: `${s.candidate.firstName} ${s.candidate.lastName}`,
-    partySlug: s.candidate.partySlug,
-    isPublic: s.isPublic,
-    shareSlug: s.shareSlug,
-  }));
+    return rows.map((s) => ({
+      id: s.id,
+      slug: s.slug,
+      createdAt: s.createdAt.toISOString(),
+      winProbability: s.winProbability,
+      confidenceLow: s.confidenceLow,
+      confidenceHigh: s.confidenceHigh,
+      candidateName: `${s.candidate.firstName} ${s.candidate.lastName}`,
+      partySlug: s.candidate.partySlug,
+      isPublic: s.isPublic,
+      shareSlug: s.shareSlug,
+    }));
+  } catch (e) {
+    console.error("listSimulations failed:", e);
+    return [];
+  }
 }
 
 export async function publishSimulation(slug: string) {
@@ -367,4 +393,22 @@ export async function recognizePublicFigure(
     sources: fig.sources,
     method: fig.recognitionMethod,
   };
+}
+
+/** Partiti attivi per UI (post party-scanner) */
+export async function getPartiesForUi() {
+  const { ensurePartiesFresh } = await import("@/lib/electoral/partyRegistryServer");
+  const { listCustomParties } = await import("@/lib/electoral/customParties");
+  const parties = await ensurePartiesFresh();
+  const customSlugs = new Set((await listCustomParties()).map((p) => p.slug));
+  return parties
+    .filter((p) => p.slug !== "italexit")
+    .map((p) => ({
+      slug: p.slug,
+      name: p.name,
+      shortName: p.shortName,
+      color: p.color,
+      aiDetected: p.aiDetected ?? false,
+      isCustom: customSlugs.has(p.slug),
+    }));
 }

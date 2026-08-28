@@ -4,7 +4,7 @@
 import { identifyPublicFigure } from "../src/lib/intelligence/publicFigure/engine";
 import { recognizeCandidateAsync } from "../src/lib/intelligence/candidateRecognition";
 import { runSimulation } from "../src/lib/simulation/engine";
-import { getCurrentBaseline } from "../src/lib/electoral/historical";
+import { getCurrentBaseline } from "../src/lib/electoral/dynamicBaseline";
 import { computeElectoralCompatibility } from "../src/lib/intelligence/electoralCompatibility";
 import { getPartyOrThrow } from "../src/lib/electoral/parties";
 

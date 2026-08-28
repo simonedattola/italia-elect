@@ -1,34 +1,91 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import Link from "next/link";
+import { useMemo, useState, useTransition, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { motion } from "framer-motion";
 import { toast } from "sonner";
-import { Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Input, Textarea, Label } from "@/components/ui/input";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { PARTIES } from "@/lib/electoral/parties";
+import { Input, Textarea } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   createSimulation,
   type ConfirmationOption,
 } from "@/actions/simulate";
+import { ScenarioEditor } from "@/components/simulation/ScenarioEditor";
+import { BaselinePreview } from "@/components/simulation/BaselinePreview";
+import {
+  DEFAULT_UI_SCENARIO,
+  type UiScenarioConfig,
+} from "@/types/scenario";
+import { RANDOM_SCENARIO_SESSION_KEY } from "@/lib/experiences/randomScenarioHandoff";
 
-export function SimulationForm() {
+export type UiParty = {
+  slug: string;
+  name: string;
+  shortName: string;
+  color: string;
+  aiDetected: boolean;
+  isCustom?: boolean;
+};
+
+function splitFullName(full: string): { firstName: string; lastName: string } {
+  const parts = full.trim().split(/\s+/).filter(Boolean);
+  if (parts.length === 0) return { firstName: "", lastName: "" };
+  if (parts.length === 1) return { firstName: parts[0], lastName: parts[0] };
+  return { firstName: parts[0], lastName: parts.slice(1).join(" ") };
+}
+
+export function SimulationForm({ parties }: { parties: UiParty[] }) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
+  const [fullName, setFullName] = useState("");
   const [form, setForm] = useState({
-    firstName: "",
-    lastName: "",
     partySlug: "fratelli-ditalia",
     description: "",
     program: "",
-    photoUrl: "",
   });
+  const [scenario, setScenario] = useState<UiScenarioConfig>(DEFAULT_UI_SCENARIO);
   const [confirmation, setConfirmation] = useState<{
     prompt: string;
     options: ConfirmationOption[];
   } | null>(null);
+
+  useEffect(() => {
+    try {
+      const raw = sessionStorage.getItem(RANDOM_SCENARIO_SESSION_KEY);
+      if (!raw) return;
+      const handoff = JSON.parse(raw) as {
+        title?: string;
+        partyVoteAdjustments?: Record<string, number>;
+      };
+      sessionStorage.removeItem(RANDOM_SCENARIO_SESSION_KEY);
+      if (handoff.partyVoteAdjustments) {
+        setScenario((s) => ({
+          ...s,
+          partyVoteAdjustments: {
+            ...s.partyVoteAdjustments,
+            ...handoff.partyVoteAdjustments,
+          },
+        }));
+        toast.success(
+          handoff.title
+            ? `Scenario «${handoff.title}» applicato agli aggiustamenti di voto`
+            : "Scenario casuale applicato",
+        );
+      }
+    } catch {
+      sessionStorage.removeItem(RANDOM_SCENARIO_SESSION_KEY);
+    }
+  }, []);
+
+  const { firstName, lastName } = useMemo(() => splitFullName(fullName), [fullName]);
 
   function update<K extends keyof typeof form>(key: K, value: (typeof form)[K]) {
     setForm((f) => ({ ...f, [key]: value }));
@@ -41,11 +98,14 @@ export function SimulationForm() {
   }) {
     startTransition(async () => {
       const res = await createSimulation({
-        ...form,
-        photoUrl: form.photoUrl || undefined,
+        firstName,
+        lastName,
+        partySlug: form.partySlug,
+        description: form.description,
         program: form.program || undefined,
         confirmedWikidataId: extra?.confirmedWikidataId,
         proceedAsUnknown: extra?.proceedAsUnknown,
+        scenario,
       });
       if (!res.ok) {
         if (res.needsConfirmation && res.options?.length) {
@@ -53,13 +113,11 @@ export function SimulationForm() {
             prompt: res.prompt ?? res.error,
             options: res.options,
           });
-          toast.message("Conferma l'identità del candidato");
           return;
         }
         toast.error(res.error);
         return;
       }
-      toast.success("Simulazione completata");
       router.push(`/risultati/${res.slug}`);
     });
   }
@@ -70,155 +128,154 @@ export function SimulationForm() {
   }
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 16 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.45 }}
-    >
-      <Card className="border-[var(--border)] shadow-md">
-        <CardHeader>
-          <CardTitle className="font-[family-name:var(--font-display)] text-2xl">
-            Nuova simulazione
-          </CardTitle>
-          <CardDescription>
-            Il motore combina dati storici, sondaggi, economia, eventi e profilo
-            candidato con pesi dinamici. Entity resolution identifica
-            automaticamente le figure pubbliche italiane.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={onSubmit} className="space-y-5">
-            <div className="grid gap-4 sm:grid-cols-2">
-              <div className="space-y-2">
-                <Label htmlFor="firstName">Nome</Label>
-                <Input
-                  id="firstName"
-                  required
-                  value={form.firstName}
-                  onChange={(e) => update("firstName", e.target.value)}
-                  placeholder="es. Giorgia"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="lastName">Cognome</Label>
-                <Input
-                  id="lastName"
-                  required
-                  value={form.lastName}
-                  onChange={(e) => update("lastName", e.target.value)}
-                  placeholder="es. Meloni"
-                />
-              </div>
-            </div>
+    <div className="grid gap-8 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)] lg:gap-10">
+      <div className="glass space-y-6 rounded-2xl p-5 sm:p-6">
+        <header>
+          <p className="text-xs font-medium uppercase tracking-wider text-[var(--muted)]">
+            Analista
+          </p>
+          <h1 className="mt-1 text-2xl font-semibold tracking-tight text-white">
+            Configura candidato
+          </h1>
+        </header>
 
-            <div className="space-y-2">
-              <Label htmlFor="party">Partito politico</Label>
-              <select
-                id="party"
-                className="flex h-10 w-full rounded-md border border-[var(--border)] bg-[var(--card)] px-3 text-sm"
-                value={form.partySlug}
-                onChange={(e) => update("partySlug", e.target.value)}
-              >
-                {PARTIES.filter((p) => p.slug !== "italexit").map((p) => (
-                  <option key={p.slug} value={p.slug}>
-                    {p.name}
-                  </option>
+        <form onSubmit={onSubmit} className="space-y-5" id="simulate-form">
+          <div className="space-y-2">
+            <Label htmlFor="fullName">Nome e cognome</Label>
+            <Input
+              id="fullName"
+              required
+              placeholder="es. Giorgia Meloni"
+              value={fullName}
+              onChange={(e) => {
+                setFullName(e.target.value);
+                setConfirmation(null);
+              }}
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="party">Partito</Label>
+            <Select
+              value={form.partySlug}
+              onValueChange={(v) => update("partySlug", v)}
+            >
+              <SelectTrigger id="party">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {parties.map((p) => (
+                  <SelectItem key={p.slug} value={p.slug}>
+                    <span className="flex items-center gap-2">
+                      <span
+                        className="h-2 w-2 rounded-full"
+                        style={{ background: p.color }}
+                      />
+                      {p.name}
+                    </span>
+                  </SelectItem>
                 ))}
-              </select>
+              </SelectContent>
+            </Select>
+            <Link
+              href="/crea-partito"
+              className="text-xs text-[var(--it-blue)] hover:underline"
+            >
+              + Partito
+            </Link>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="description">Descrizione</Label>
+            <Textarea
+              id="description"
+              required
+              minLength={20}
+              placeholder="Biografia, posizioni, carriera — influenza compatibilità e risultato"
+              value={form.description}
+              onChange={(e) => update("description", e.target.value)}
+              className="min-h-[100px]"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="program">Programma</Label>
+            <Textarea
+              id="program"
+              placeholder="Punti programmatici, riforme, priorità — modula mobilizzazione e appeal"
+              value={form.program}
+              onChange={(e) => update("program", e.target.value)}
+              className="min-h-[88px]"
+            />
+          </div>
+
+          <ScenarioEditor
+            value={scenario}
+            onChange={setScenario}
+            collapsed
+            parties={parties}
+          />
+
+          {confirmation && (
+            <div className="space-y-3 rounded-xl border border-[var(--border)] bg-black/25 p-4">
+              <p className="text-sm font-medium text-white">{confirmation.prompt}</p>
+              <ul className="space-y-2">
+                {confirmation.options.map((opt) => (
+                  <li key={opt.wikidataId ?? opt.label}>
+                    <button
+                      type="button"
+                      disabled={pending}
+                      onClick={() =>
+                        opt.wikidataId
+                          ? run({ confirmedWikidataId: opt.wikidataId })
+                          : undefined
+                      }
+                      className="w-full rounded-xl border border-[var(--border)] bg-white/[0.03] px-3 py-2 text-left text-sm transition hover:border-[var(--it-blue)]/50"
+                    >
+                      {opt.label}
+                    </button>
+                  </li>
+                ))}
+              </ul>
+              <Button
+                type="button"
+                variant="outline"
+                disabled={pending}
+                onClick={() => run({ proceedAsUnknown: true })}
+              >
+                Procedi
+              </Button>
             </div>
+          )}
 
-            <div className="space-y-2">
-              <Label htmlFor="description">Descrizione del candidato</Label>
-              <Textarea
-                id="description"
-                required
-                minLength={20}
-                value={form.description}
-                onChange={(e) => update("description", e.target.value)}
-                placeholder="Biografia, competenze, posizionamento politico…"
-                className="min-h-[120px]"
-              />
-            </div>
+          <Button
+            type="submit"
+            size="lg"
+            variant="gradient"
+            className="glow-button-blue w-full"
+            disabled={pending}
+            id="simulate"
+          >
+            {pending ? "Simulazione in corso…" : "Avvia simulazione"}
+          </Button>
+        </form>
+      </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="program">Programma elettorale (facoltativo)</Label>
-              <Textarea
-                id="program"
-                value={form.program}
-                onChange={(e) => update("program", e.target.value)}
-                placeholder="Punti chiave del programma…"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="photo">URL foto (facoltativo)</Label>
-              <Input
-                id="photo"
-                type="url"
-                value={form.photoUrl}
-                onChange={(e) => update("photoUrl", e.target.value)}
-                placeholder="https://…"
-              />
-            </div>
-
-            {confirmation && (
-              <div className="space-y-3 rounded-lg border border-[var(--border)] bg-[var(--surface)] p-4">
-                <p className="text-sm font-medium text-[var(--foreground)]">
-                  {confirmation.prompt}
-                </p>
-                <ul className="space-y-2">
-                  {confirmation.options.map((opt) => (
-                    <li key={opt.wikidataId ?? opt.label}>
-                      <button
-                        type="button"
-                        disabled={pending}
-                        onClick={() =>
-                          opt.wikidataId
-                            ? run({ confirmedWikidataId: opt.wikidataId })
-                            : undefined
-                        }
-                        className="w-full rounded-md border border-[var(--border)] bg-[var(--card)] px-3 py-2 text-left text-sm transition hover:border-[var(--accent)]"
-                      >
-                        <span className="font-medium">{opt.label}</span>
-                        <span className="mt-0.5 block text-xs text-[var(--muted)]">
-                          {opt.description || "Senza descrizione"} · confidenza{" "}
-                          {opt.confidence}% · {opt.roleCategory}
-                        </span>
-                      </button>
-                    </li>
-                  ))}
-                </ul>
-                <Button
-                  type="button"
-                  variant="outline"
-                  disabled={pending}
-                  onClick={() => run({ proceedAsUnknown: true })}
-                >
-                  Non è nessuna di queste — procedi come sconosciuto
-                </Button>
-              </div>
-            )}
-
-            <div className="rounded-lg border border-[var(--border)] bg-[var(--surface)] p-3 text-xs text-[var(--muted)]">
-              Italia Elect è un{" "}
-              <strong className="text-[var(--foreground)]">simulatore statistico</strong>,
-              non uno strumento di previsione certa. Non attribuisce fatti non
-              verificati ai candidati.
-            </div>
-
-            <Button type="submit" size="lg" className="w-full sm:w-auto" disabled={pending}>
-              {pending ? (
-                <>
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                  Elaborazione Monte Carlo…
-                </>
-              ) : (
-                "Avvia simulazione nazionale"
-              )}
-            </Button>
-          </form>
-        </CardContent>
-      </Card>
-    </motion.div>
+      <aside className="space-y-4 lg:sticky lg:top-20 lg:self-start">
+        <p className="text-xs font-medium uppercase tracking-wider text-[var(--muted)]">
+          Preview live
+        </p>
+        <BaselinePreview
+          partySlug={form.partySlug}
+          scenario={scenario}
+          candidate={{
+            firstName,
+            lastName,
+            description: form.description,
+            program: form.program,
+          }}
+        />
+      </aside>
+    </div>
   );
 }

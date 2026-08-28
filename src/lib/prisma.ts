@@ -8,10 +8,23 @@ const globalForPrisma = globalThis as unknown as {
 };
 
 function createPrismaClient() {
+  const url = process.env.DATABASE_URL?.trim();
+  if (!url || url.includes("localhost") || url.includes("127.0.0.1")) {
+    throw new Error(
+      "DATABASE_URL non valida su Vercel (manca o punta a localhost). " +
+        "Imposta un Postgres cloud (Neon/Vercel Postgres) in Settings → Environment Variables, " +
+        "poi Redeploy. Esempio: postgresql://user:pass@….neon.tech/neondb?sslmode=require",
+    );
+  }
+
   const pool =
     globalForPrisma.pgPool ??
     new pg.Pool({
-      connectionString: process.env.DATABASE_URL,
+      connectionString: url,
+      // Vercel / serverless: connessioni brevi
+      max: 1,
+      idleTimeoutMillis: 10_000,
+      connectionTimeoutMillis: 10_000,
     });
 
   if (process.env.NODE_ENV !== "production") {
@@ -25,8 +38,16 @@ function createPrismaClient() {
   });
 }
 
-export const prisma = globalForPrisma.prisma ?? createPrismaClient();
-
-if (process.env.NODE_ENV !== "production") {
-  globalForPrisma.prisma = prisma;
-}
+/** Lazy singleton — evita di aprire il pool durante `next build` senza DB. */
+export const prisma = new Proxy({} as PrismaClient, {
+  get(_target, prop, receiver) {
+    const client = globalForPrisma.prisma ?? createPrismaClient();
+    if (process.env.NODE_ENV !== "production") {
+      globalForPrisma.prisma = client;
+    } else if (!globalForPrisma.prisma) {
+      globalForPrisma.prisma = client;
+    }
+    const value = Reflect.get(client, prop, receiver);
+    return typeof value === "function" ? value.bind(client) : value;
+  },
+});

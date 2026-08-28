@@ -1,0 +1,30 @@
+{
+  "date": "2026-08-27",
+  "baseline": {
+    "fratelli-ditalia": 28.236909148424775,
+    "lega": 5.372759823109978,
+    "forza-italia": 9.050047280746803,
+    "partito-democratico": 23.05905352048622,
+    "movimento-5-stelle": 12.097588171735833,
+    "azione-iv": 3.5409873535019973,
+    "avss": 6.6385927457985066,
+    "piu-europa": 3.070163204992945,
+    "italexit": 1.3492678003483618,
+    "futuro-nazionale": 7.584630950854566
+  },
+  "pollCorrection": {
+    "fratelli-ditalia": 28.287837080688753,
+    "lega": 4.8584073573191935,
+    "forza-italia": 9.059556916783823,
+    "partito-democratico": 23.14765310359067,
+    "movimento-5-stelle": 12.096461179389685,
+    "azione-iv": 3.314937800501831,
+    "avss": 6.758965014613065,
+    "piu-europa": 3.018349625519313,
+    "italexit": 1.3030810639823567,
+    "futuro-nazionale": 8.154750857611313
+  },
+  "methodology": "50% Europee 2024 + 30% Politiche 2022 + 20% Regionali 2023, correzione 86% sondaggi ultimi 30 giorni (freschezza × campione × affidabilità)",
+  "lega": 5.372759823109978,
+  "futuroNazionale": 7.584630950854566
+}

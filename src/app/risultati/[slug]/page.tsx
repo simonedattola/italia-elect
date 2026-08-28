@@ -3,6 +3,8 @@ import { notFound } from "next/navigation";
 import { getSimulationBySlug } from "@/actions/simulate";
 import { ResultsView } from "@/components/simulation/results-view";
 
+export const dynamic = "force-dynamic";
+
 type Props = { params: Promise<{ slug: string }> };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
@@ -21,8 +23,10 @@ export default async function RisultatiPage({ params }: Props) {
   if (!data) notFound();
 
   return (
-    <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6 sm:py-14">
-      <ResultsView data={data} />
+    <div className="hero-atmosphere min-h-[calc(100vh-4rem)]">
+      <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6 sm:py-14 lg:px-8">
+        <ResultsView data={data} />
+      </div>
     </div>
   );
 }

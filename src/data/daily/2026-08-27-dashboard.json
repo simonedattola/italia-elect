@@ -1,0 +1,151 @@
+{
+  "date": "2026-08-27",
+  "collectedAt": "2026-08-27T23:06:48.206Z",
+  "weightsUpdatedAt": "2026-08-27T23:06:47.284Z",
+  "virtualPopulation": 60000000,
+  "agentSampleSize": 5000,
+  "demographics": {
+    "femalePct": 52.62,
+    "avgAge": 51.0242,
+    "urbanPct": 45.36,
+    "highEducationPct": 32.76
+  },
+  "votingIntent": {
+    "fratelli-ditalia": 27.870993760357184,
+    "lega": 5.204537718990149,
+    "forza-italia": 8.859276146066138,
+    "partito-democratico": 23.02109761958466,
+    "movimento-5-stelle": 12.24347113133945,
+    "azione-iv": 3.7279863971063345,
+    "avss": 6.881293507610657,
+    "piu-europa": 3.120907806308149,
+    "italexit": 1.5323137205005741,
+    "futuro-nazionale": 7.5381221921367
+  },
+  "confidenceLow": {
+    "fratelli-ditalia": 26.670993760357184,
+    "lega": 4.004537718990149,
+    "forza-italia": 7.659276146066138,
+    "partito-democratico": 21.82109761958466,
+    "movimento-5-stelle": 11.043471131339452,
+    "azione-iv": 2.5279863971063348,
+    "avss": 5.681293507610657,
+    "piu-europa": 1.920907806308149,
+    "italexit": 0.3323137205005742,
+    "futuro-nazionale": 6.3381221921367
+  },
+  "confidenceHigh": {
+    "fratelli-ditalia": 29.070993760357183,
+    "lega": 6.40453771899015,
+    "forza-italia": 10.059276146066138,
+    "partito-democratico": 24.221097619584658,
+    "movimento-5-stelle": 13.44347113133945,
+    "azione-iv": 4.927986397106334,
+    "avss": 8.081293507610656,
+    "piu-europa": 4.320907806308149,
+    "italexit": 2.7323137205005743,
+    "futuro-nazionale": 8.7381221921367
+  },
+  "parties": [
+    {
+      "slug": "fratelli-ditalia",
+      "name": "FdI",
+      "pct": 27.870993760357184,
+      "aiDetected": false
+    },
+    {
+      "slug": "lega",
+      "name": "Lega",
+      "pct": 5.204537718990149,
+      "aiDetected": false
+    },
+    {
+      "slug": "forza-italia",
+      "name": "FI",
+      "pct": 8.859276146066138,
+      "aiDetected": false
+    },
+    {
+      "slug": "partito-democratico",
+      "name": "PD",
+      "pct": 23.02109761958466,
+      "aiDetected": false
+    },
+    {
+      "slug": "movimento-5-stelle",
+      "name": "M5S",
+      "pct": 12.24347113133945,
+      "aiDetected": false
+    },
+    {
+      "slug": "azione-iv",
+      "name": "Az/IV",
+      "pct": 3.7279863971063345,
+      "aiDetected": false
+    },
+    {
+      "slug": "avss",
+      "name": "AVS",
+      "pct": 6.881293507610657,
+      "aiDetected": false
+    },
+    {
+      "slug": "piu-europa",
+      "name": "+Eu",
+      "pct": 3.120907806308149,
+      "aiDetected": false
+    },
+    {
+      "slug": "italexit",
+      "name": "Altri",
+      "pct": 1.5323137205005741,
+      "aiDetected": false
+    },
+    {
+      "slug": "futuro-nazionale",
+      "name": "FN",
+      "pct": 7.5381221921367,
+      "aiDetected": false
+    }
+  ],
+  "socialImpactByAge": {
+    "18-24": 0.85,
+    "25-34": 0.55,
+    "35-44": 0.45,
+    "45-54": 0.35,
+    "55-64": 0.2,
+    "65+": 0.08
+  },
+  "meloniPostImpact": {
+    "follower": 0.85,
+    "nonFollower": 0.1
+  },
+  "sources": [
+    "ISTAT BES (open data)",
+    "Sondaggi aggregati (open)",
+    "Euristiche storiche (baseline ± deviazione)",
+    "SWG:2026-07-20",
+    "YouTrend / AGI:2026-07-12",
+    "Ipsos:2026-06-28",
+    "EMG:2026-06-15",
+    "Termometro Politico:2026-07-25",
+    "https://www.ansa.it/",
+    "quotidiano",
+    "ISTAT / Banca d'Italia (aggregato modellistico)",
+    "https://www.istat.it/",
+    "baseline:composita-eligendo+sondaggi30gg",
+    "SWG:futuro-nazionale=8%",
+    "poll-discovery:SWG:fratelli-ditalia",
+    "poll-discovery:SWG:partito-democratico",
+    "poll-discovery:SWG:movimento-5-stelle",
+    "poll-discovery:SWG:forza-italia",
+    "poll-discovery:SWG:lega",
+    "poll-discovery:SWG:avss",
+    "poll-discovery:SWG:azione-iv",
+    "poll-discovery:SWG:piu-europa",
+    "poll-discovery:SWG:italexit",
+    "Eligendo / Ministero Interno",
+    "ISTAT / AGCOM",
+    "Agent sample (stratified)"
+  ]
+}

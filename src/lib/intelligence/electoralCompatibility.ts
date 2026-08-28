@@ -11,6 +11,11 @@
 import type { PartyDefinition } from "@/types/simulation";
 import type { PublicFigureProfile } from "@/lib/intelligence/publicFigure/types";
 import { clamp } from "@/lib/utils";
+import {
+  inferIdeologyFromPartyAffiliation,
+  resolveNaturalPartySlug,
+} from "@/lib/intelligence/partySlugResolution";
+import { inferTextIdeology } from "@/lib/intelligence/candidateTextSignals";
 
 export interface CompatibilityBreakdown {
   personalImpactScore: number;
@@ -24,15 +29,21 @@ export interface CompatibilityBreakdown {
   notes: string[];
 }
 
-const TOTALITARIAN_RE = /nazionalsocial|nazista|\bnazi\b|hitler|fascis|dittator|olocausto|holocaust|shoah|genocid|Führer|fuhrer|partito nazionale fascista|nsdap/i;
+const TOTALITARIAN_RE =
+  /nazionalsocial|nazista|\bnazi\b|hitler|(?<!anti)fascis(?:mo|ta|m)?|dittator|olocausto|holocaust|shoah|genocid|Führer|fuhrer|partito nazionale fascista|nsdap/i;
 
 const FAR_RIGHT_RE =
   /estrema destra|neofasc|sovranist.*radicale|supremac|razzist|antisemit/i;
 const RIGHT_RE =
-  /conservator|sovranist|patriott|destra|centrodestra|forza italia|lega|fratelli d.?italia|alleanza nazionale|pdl/i;
+  /conservator|sovranist|patriott|destra|centrodestra|forza italia|\blega\b|fratelli d.?italia|alleanza nazionale|pdl/i;
 const LEFT_RE =
   /sinistra|progressist|socialist|comunist|ambiental|lgbt|femminis|antifasc|partito democratico|sinistra italiana|verdi|welfare|lavoratori|sindacal/i;
+const PROGRESSIVE_LEFT_RE =
+  /diritti|libert[aà]|europa|europea|europei|democratica|democratici|clima|climatico|giovani|scuola|ricerca|innovazione|opportunit|generazione|inclusione|sostenib|green|parit[aà]|uguaglianza|moderna|giusta/i;
 const CENTER_RE = /liberale|europeist|riformist|tecnocrat|moderato|centrist/i;
+
+const SOVRANIST_RE =
+  /sovranist|euroscettic|antieurop|immigrazion|identitar|patriott|generale dell.?arma|carabinieri/i;
 
 /** Inferisce asse ideologico da biografia/storia/partiti (quando manca ideologyHint). */
 export function inferIdeologyAxis(texts: string[]): number {
@@ -41,6 +52,8 @@ export function inferIdeologyAxis(texts: string[]): number {
 
   if (TOTALITARIAN_RE.test(blob)) return 0.98;
   if (FAR_RIGHT_RE.test(blob)) return 0.85;
+
+  const fromParties = inferIdeologyFromPartyAffiliation(texts);
 
   let score = 0;
   let hits = 0;
@@ -52,12 +65,61 @@ export function inferIdeologyAxis(texts: string[]): number {
     score -= 0.5;
     hits++;
   }
+  const progressiveHits = blob.match(new RegExp(PROGRESSIVE_LEFT_RE.source, "gi"))?.length ?? 0;
+  if (progressiveHits >= 4) {
+    score -= 0.4;
+    hits++;
+  } else if (progressiveHits >= 2) {
+    score -= 0.3;
+    hits++;
+  } else if (progressiveHits >= 1) {
+    score -= 0.2;
+    hits++;
+  }
   if (CENTER_RE.test(blob)) {
     score += 0.05;
     hits++;
   }
+  if (SOVRANIST_RE.test(blob)) {
+    score += 0.62;
+    hits++;
+  }
+
+  if (fromParties != null) {
+    if (hits === 0) return clamp(fromParties, -1, 1);
+    return clamp((score / hits + fromParties) / 2, -1, 1);
+  }
+
   if (!hits) return 0;
   return clamp(score / Math.max(hits, 1), -1, 1);
+}
+
+function resolveInferredIdeology(opts: {
+  figure?: PublicFigureProfile;
+  description?: string;
+  program?: string;
+  ideologyHint?: number;
+  texts: string[];
+}): number {
+  if (opts.ideologyHint != null) return opts.ideologyHint;
+
+  const userBlob = `${opts.description ?? ""} ${opts.program ?? ""}`.trim();
+  const userLen = userBlob.length;
+  const userIdeology = userLen >= 60 ? inferTextIdeology(userBlob.toLowerCase()) : 0;
+  const userSignal = userLen >= 60 && Math.abs(userIdeology) > 0.05;
+
+  const figureIdeology =
+    opts.figure?.ideologyHint ??
+    inferIdeologyAxis(collectText(opts.figure, "", ""));
+
+  if (userLen >= 120) {
+    const userWeight = clamp(0.45 + userLen / 500, 0.45, 0.88);
+    return clamp(userIdeology * userWeight + figureIdeology * (1 - userWeight), -1, 1);
+  }
+  if (userSignal && userLen >= 60) {
+    return clamp((userIdeology + figureIdeology) / 2, -1, 1);
+  }
+  return opts.figure?.ideologyHint ?? inferIdeologyAxis(opts.texts);
 }
 
 function ideologyDistanceToCompat(gap: number): number {
@@ -91,6 +153,7 @@ function detectRedFlags(opts: {
   ideologyGap: number;
   defaultPartySlug?: string;
   partySlug: string;
+  figure?: PublicFigureProfile;
 }): string[] {
   const flags: string[] = [];
   const blob = opts.texts.join(" \n ");
@@ -114,6 +177,9 @@ function detectRedFlags(opts: {
     opts.ideologyGap >= 0.55
   ) {
     flags.push("Storia politica associata a un partito/coalizione opposta");
+  }
+  if (opts.figure?.incompatiblePartySlugs?.includes(opts.partySlug)) {
+    flags.push("Rottura documentata con il partito selezionato");
   }
   if (/antifasc/i.test(blob) && opts.party.ideologyScore > 0.5) {
     flags.push("Posizionamento antifascista incompatibile con il partito selezionato");
@@ -155,18 +221,24 @@ export function computeElectoralCompatibility(opts: {
   ideologyHint?: number;
 }): CompatibilityBreakdown {
   const texts = collectText(opts.figure, opts.description, opts.program);
-  const inferred =
-    opts.ideologyHint ??
-    opts.figure?.ideologyHint ??
-    inferIdeologyAxis(texts);
+  const naturalPartySlug = resolveNaturalPartySlug(opts.figure);
+
+  const inferred = resolveInferredIdeology({
+    figure: opts.figure,
+    description: opts.description,
+    program: opts.program,
+    ideologyHint: opts.ideologyHint,
+    texts,
+  });
 
   const gap = Math.abs(inferred - opts.party.ideologyScore);
   const redFlags = detectRedFlags({
     texts,
     party: opts.party,
     ideologyGap: gap,
-    defaultPartySlug: opts.figure?.defaultPartySlug,
+    defaultPartySlug: naturalPartySlug,
     partySlug: opts.partySlug,
+    figure: opts.figure,
   });
 
   const categoricalRejection = redFlags.some((f) =>
@@ -185,7 +257,14 @@ export function computeElectoralCompatibility(opts: {
     .join(" ")
     .toLowerCase();
 
-  if (opts.figure?.defaultPartySlug === opts.partySlug) {
+  if (naturalPartySlug === opts.partySlug) {
+    historical = 1;
+  } else if (opts.figure?.incompatiblePartySlugs?.includes(opts.partySlug)) {
+    historical = 0.12;
+  } else if (naturalPartySlug) {
+    // Partito naturale diverso (es. Lega → Futuro Nazionale)
+    historical = gap >= 0.85 ? 0.08 : gap >= 0.65 ? 0.18 : gap >= 0.45 ? 0.32 : gap >= 0.3 ? 0.42 : 0.55;
+  } else if (opts.figure?.defaultPartySlug === opts.partySlug) {
     historical = 1;
   } else if (opts.figure?.defaultPartySlug) {
     // Partito "naturale" diverso (democratico vs democratico: basso ma non zero)
@@ -195,7 +274,18 @@ export function computeElectoralCompatibility(opts: {
   if (associated) {
     const partyName = opts.party.name.toLowerCase();
     const short = opts.party.shortName.toLowerCase();
-    if (associated.includes(partyName) || associated.includes(short)) {
+    const incompatible = opts.figure?.incompatiblePartySlugs?.includes(opts.partySlug);
+    const abandonmentRe = new RegExp(
+      `(?:abbandonat|lasciat|cessat|ex\\s|rottur|dimess).{0,40}${short}|${short}.{0,40}(?:abbandonat|lasciat|cessat|ex\\s|rottur|dimess)`,
+      "i",
+    );
+    const mentionsParty =
+      associated.includes(partyName) || associated.includes(short);
+    if (
+      mentionsParty &&
+      !incompatible &&
+      !abandonmentRe.test(associated)
+    ) {
       historical = Math.max(historical, 0.9);
     } else if (
       /nazionalsocial|fascist|nsdap|partito nazionale fascista/.test(associated) &&
@@ -209,6 +299,9 @@ export function computeElectoralCompatibility(opts: {
   const polar = opts.figure?.polarizationScore ?? opts.figure?.inferredScores?.polarization ?? 50;
   const scandal = opts.figure?.inferredScores?.scandalRisk ?? 30;
   acceptance = clamp(1 - gap * 0.55 - (polar / 100) * 0.15 - (scandal / 100) * 0.1, 0, 1);
+  if (opts.figure?.incompatiblePartySlugs?.includes(opts.partySlug)) {
+    acceptance *= 0.5;
+  }
 
   // Red flags moltiplicativi (il rifiuto categorico azzera tutto)
   if (categoricalRejection) {
@@ -233,7 +326,12 @@ export function computeElectoralCompatibility(opts: {
   }
 
   // Match partito naturale → boost (dopo i flag; non salva un nazista)
-  if (!categoricalRejection && opts.figure?.defaultPartySlug === opts.partySlug) {
+  if (!categoricalRejection && naturalPartySlug === opts.partySlug) {
+    score = Math.max(score, 88);
+    ideological = Math.max(ideological, 0.9);
+    historical = 1;
+    acceptance = Math.max(acceptance, 0.9);
+  } else if (!categoricalRejection && opts.figure?.defaultPartySlug === opts.partySlug) {
     score = Math.max(score, 88);
     ideological = Math.max(ideological, 0.9);
     historical = 1;

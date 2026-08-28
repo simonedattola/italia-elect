@@ -28,7 +28,8 @@ export { PUBLIC_KNOWLEDGE } from "./candidateRecognitionTypes";
 function toRecognized(
   figure: PublicFigureProfile,
   partySlug: string,
-  description?: string
+  description?: string,
+  program?: string,
 ): RecognizedCandidate {
   const party = getPartyOrThrow(partySlug);
   const usable = figure.publicFigure && !figure.needsConfirmation && figure.confidence >= 70;
@@ -38,6 +39,7 @@ function toRecognized(
     partySlug,
     figure: usable ? figure : undefined,
     description,
+    program,
     ideologyHint: figure.ideologyHint,
   });
 
@@ -183,7 +185,7 @@ export async function recognizeCandidateAsync(
     partySlug,
   });
   return {
-    ...toRecognized(figure, partySlug, ctx?.description),
+    ...toRecognized(figure, partySlug, ctx?.description, ctx?.program),
     publicFigure: figure,
   };
 }

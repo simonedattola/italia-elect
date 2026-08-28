@@ -97,6 +97,8 @@ export interface PublicFigureProfile {
   wikipediaUrl?: string;
   dbpediaUri?: string;
   defaultPartySlug?: string;
+  /** Partiti con cui la figura ha rotto / è incompatibile (es. ex partito abbandonato). */
+  incompatiblePartySlugs?: string[];
   ideologyHint?: number;
   inferredScores?: {
     credibility: number;
@@ -140,6 +142,7 @@ export interface IdentifyContext {
   skipRemote?: boolean;
   partySlug?: string;
   description?: string;
+  program?: string;
   /** Se l'utente conferma un omonimo */
   confirmedWikidataId?: string;
   /** Soglia auto-assegnazione (default 70) */

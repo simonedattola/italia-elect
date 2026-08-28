@@ -6,8 +6,7 @@ import { PROVINCES } from "@/lib/electoral/provinces";
 import { formatPercent } from "@/lib/utils";
 
 /**
- * Mappa Italia interattiva basata su griglia geografica delle province
- * (Leaflet/GeoJSON può sostituire questo layer in produzione con shapefile ISTAT).
+ * Mappa Italia interattiva basata su griglia geografica delle province.
  */
 export function ItalyMap({
   data,
@@ -17,12 +16,14 @@ export function ItalyMap({
   highlightSlug?: string;
 }) {
   const [hover, setHover] = useState<ProvinceResult | null>(null);
+  const [pinned, setPinned] = useState<ProvinceResult | null>(null);
   const byCode = useMemo(() => {
     const m = new Map(data.map((d) => [d.provinceCode, d]));
     return m;
   }, [data]);
 
-  // Proiezione semplice lat/lng → SVG
+  const active = pinned ?? hover;
+
   const points = useMemo(() => {
     const lats = PROVINCES.map((p) => p.lat);
     const lngs = PROVINCES.map((p) => p.lng);
@@ -44,33 +45,46 @@ export function ItalyMap({
   }, [byCode]);
 
   return (
-    <div className="relative overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--surface)]">
-      <svg viewBox="0 0 420 520" className="h-auto w-full" role="img" aria-label="Mappa province italiane">
+    <div className="relative overflow-hidden rounded-2xl border border-[var(--border)] bg-black/20 backdrop-blur-xl">
+      <svg
+        viewBox="0 0 420 520"
+        className="h-auto w-full"
+        role="img"
+        aria-label="Mappa province italiane"
+      >
         <defs>
           <radialGradient id="mapGlow" cx="50%" cy="40%" r="60%">
-            <stop offset="0%" stopColor="var(--it-blue)" stopOpacity="0.08" />
+            <stop offset="0%" stopColor="#2563eb" stopOpacity="0.14" />
             <stop offset="100%" stopColor="transparent" />
           </radialGradient>
         </defs>
         <rect width="420" height="520" fill="url(#mapGlow)" />
         {points.map((p) => {
-          const color = p.result?.winnerColor ?? "#94a3b8";
+          const color = p.result?.winnerColor ?? "#475569";
           const isLeader =
             highlightSlug && p.result?.winnerSlug === highlightSlug;
+          const isActive = active?.provinceCode === p.code;
           return (
             <g key={p.code}>
               <circle
                 cx={p.x}
                 cy={p.y}
-                r={p.r + (isLeader ? 2 : 0)}
+                r={p.r + (isLeader || isActive ? 3 : 0)}
                 fill={color}
-                fillOpacity={isLeader ? 0.95 : 0.75}
-                stroke="var(--background)"
-                strokeWidth={1.5}
-                className="cursor-pointer transition-transform duration-200 hover:opacity-100"
-                style={{ transformOrigin: `${p.x}px ${p.y}px` }}
+                fillOpacity={isLeader || isActive ? 0.98 : 0.72}
+                stroke={isActive ? "#fff" : "rgba(10,11,16,0.8)"}
+                strokeWidth={isActive ? 2 : 1.5}
+                className="cursor-pointer transition-opacity duration-200"
                 onMouseEnter={() => p.result && setHover(p.result)}
                 onMouseLeave={() => setHover(null)}
+                onClick={() =>
+                  p.result &&
+                  setPinned((cur) =>
+                    cur?.provinceCode === p.result!.provinceCode
+                      ? null
+                      : p.result!
+                  )
+                }
               />
               {p.population > 900000 && (
                 <text
@@ -87,30 +101,41 @@ export function ItalyMap({
         })}
       </svg>
 
-      <div className="absolute bottom-3 left-3 right-3 rounded-lg border border-[var(--border)] bg-[var(--card)]/95 p-3 text-sm shadow-lg backdrop-blur">
-        {hover ? (
+      <div className="absolute bottom-3 left-3 right-3 rounded-xl border border-white/10 bg-[#0a0b10]/90 p-3 text-sm shadow-xl backdrop-blur-xl">
+        {active ? (
           <div className="space-y-1">
             <div className="flex items-center justify-between gap-2">
-              <span className="font-medium">
-                {hover.provinceName}
-                <span className="text-[var(--muted)]"> · {hover.regionName}</span>
+              <span className="font-medium text-white">
+                {active.provinceName}
+                <span className="text-[var(--muted)]">
+                  {" "}
+                  · {active.regionName}
+                </span>
               </span>
               <span
-                className="rounded px-2 py-0.5 text-xs font-semibold text-white"
-                style={{ background: hover.winnerColor }}
+                className="rounded-lg px-2 py-0.5 text-xs font-semibold text-white"
+                style={{ background: active.winnerColor }}
               >
-                {hover.winnerName}
+                {active.winnerName}
               </span>
             </div>
-            <p className="text-[var(--muted)]">
-              {formatPercent(hover.percentage)} · swing{" "}
-              {hover.swing >= 0 ? "+" : ""}
-              {hover.swing.toFixed(1)} pt · affluenza {formatPercent(hover.turnout)}
+            <p className="font-mono-data text-[var(--muted)]">
+              {formatPercent(active.percentage)} · swing{" "}
+              {active.swing >= 0 ? "+" : ""}
+              {active.swing.toFixed(1)} pt · affluenza{" "}
+              {formatPercent(active.turnout)}
+            </p>
+            <p className="text-[10px] text-[var(--muted)]">
+              Top:{" "}
+              {active.topParties
+                .slice(0, 3)
+                .map((t) => `${t.slug.split("-")[0]} ${t.percentage.toFixed(0)}%`)
+                .join(" · ")}
             </p>
           </div>
         ) : (
           <p className="text-[var(--muted)]">
-            Passa il cursore su una provincia per dettagli (partito, %, swing).
+            Passa o clicca una provincia per il tooltip dettaglio.
           </p>
         )}
       </div>
@@ -118,7 +143,6 @@ export function ItalyMap({
   );
 }
 
-/** Leaflet map alternative loader — ready for GeoJSON ISTAT */
 export function LeafletMapLoader(props: {
   data: ProvinceResult[];
   highlightSlug?: string;

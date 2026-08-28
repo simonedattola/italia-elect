@@ -11,7 +11,7 @@ import type {
   VoterSegmentImpact,
 } from "@/types/intelligence";
 import type { CandidateProfile } from "@/types/simulation";
-import { aggregatePolls, blendBaselineWithPolls } from "@/lib/intelligence/polls";
+import { aggregatePolls } from "@/lib/intelligence/polls";
 import {
   computeEconomicSentiment,
   economicPartyShocks,
@@ -25,7 +25,7 @@ import {
   socialPartyShocks,
 } from "@/lib/intelligence/socialAnalysis";
 import { candidateElectoralDelta } from "@/lib/intelligence/candidateProfile";
-import { getCurrentBaseline } from "@/lib/electoral/historical";
+import { getPollOnlyShares } from "@/lib/electoral/dynamicBaseline";
 import { PARTIES } from "@/lib/electoral/parties";
 import { clamp } from "@/lib/utils";
 
@@ -114,12 +114,15 @@ function computeDynamicWeights(opts: {
     rationale.push("Scenario misto: bilanciamento tra storico, sondaggi, contesto e candidato.");
   }
 
-  // Affidabilità sondaggi → ribilancia polls vs historical
+  // Affidabilità sondaggi → più peso a economia/eventi, mai a risultati elettorali
   if (pollReliability < 0.65) {
     const shift = 0.06;
     weights.polls = Math.max(0.1, weights.polls - shift);
-    weights.historical += shift;
-    rationale.push("Affidabilità aggregata sondaggi moderata: più peso allo storico.");
+    weights.economy += shift * 0.5;
+    weights.events += shift * 0.5;
+    rationale.push(
+      "Affidabilità aggregata sondaggi moderata: più peso al contesto economico ed eventi.",
+    );
   }
 
   // Normalizza
@@ -212,9 +215,10 @@ export function buildContextBundle(opts: {
   profile: CandidateProfile;
   leaderPartySlug: string;
   candidateName: string;
+  naturalPartyLeader?: boolean;
 }): ContextBundle {
-  const { profile, leaderPartySlug, candidateName } = opts;
-  const historical = getCurrentBaseline();
+  const { profile, leaderPartySlug, candidateName, naturalPartyLeader } = opts;
+  const pollingBaseline = getPollOnlyShares();
   const polls = aggregatePolls();
   const economy = computeEconomicSentiment();
   const events = analyzeEvents();
@@ -229,11 +233,7 @@ export function buildContextBundle(opts: {
     pollReliability: polls.sampleWeightedReliability,
   });
 
-  const pollCorrected = blendBaselineWithPolls(
-    historical,
-    polls,
-    0.35 + weights.polls * 0.4
-  );
+  const pollCorrected = { ...pollingBaseline };
 
   const ecoShocks = economicPartyShocks(economy);
   const eventShocks = events.netPartyShocks;
@@ -252,10 +252,12 @@ export function buildContextBundle(opts: {
     scale(socShocks, weights.social),
   ]);
 
-  const candDelta = candidateElectoralDelta(profile);
+  const candDelta = candidateElectoralDelta(profile, undefined, undefined, undefined, {
+    naturalPartyLeader,
+  });
   const segments = buildSegments(profile, economy.index);
 
-  const leaderHist = historical[leaderPartySlug] ?? 0;
+  const leaderHist = pollingBaseline[leaderPartySlug] ?? 0;
   const leaderPoll = polls.shares[leaderPartySlug] ?? leaderHist;
 
   const influenceFactors: InfluenceFactor[] = [

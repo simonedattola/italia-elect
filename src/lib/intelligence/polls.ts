@@ -31,7 +31,8 @@ export const EMBEDDED_POLLS: RawPoll[] = [
       "partito-democratico": 22.5,
       "movimento-5-stelle": 11.8,
       "forza-italia": 9.2,
-      lega: 8.5,
+      lega: 4.8,
+      "futuro-nazionale": 8.0,
       avss: 6.5,
       "azione-iv": 3.1,
       "piu-europa": 2.9,
@@ -51,7 +52,8 @@ export const EMBEDDED_POLLS: RawPoll[] = [
       "partito-democratico": 23.0,
       "movimento-5-stelle": 12.2,
       "forza-italia": 8.8,
-      lega: 8.2,
+      lega: 4.6,
+      "futuro-nazionale": 8.2,
       avss: 6.8,
       "azione-iv": 3.4,
       "piu-europa": 3.0,
@@ -70,7 +72,8 @@ export const EMBEDDED_POLLS: RawPoll[] = [
       "partito-democratico": 21.8,
       "movimento-5-stelle": 11.0,
       "forza-italia": 9.5,
-      lega: 8.8,
+      lega: 4.9,
+      "futuro-nazionale": 7.8,
       avss: 6.2,
       "azione-iv": 3.0,
       "piu-europa": 2.7,
@@ -90,7 +93,8 @@ export const EMBEDDED_POLLS: RawPoll[] = [
       "partito-democratico": 21.2,
       "movimento-5-stelle": 12.5,
       "forza-italia": 9.0,
-      lega: 9.1,
+      lega: 4.7,
+      "futuro-nazionale": 8.1,
       avss: 5.9,
       "azione-iv": 2.8,
       "piu-europa": 2.5,
@@ -109,7 +113,8 @@ export const EMBEDDED_POLLS: RawPoll[] = [
       "partito-democratico": 23.5,
       "movimento-5-stelle": 12.0,
       "forza-italia": 8.5,
-      lega: 8.0,
+      lega: 4.8,
+      "futuro-nazionale": 8.0,
       avss: 7.0,
       "azione-iv": 3.5,
       "piu-europa": 3.2,
@@ -224,13 +229,23 @@ export function blendBaselineWithPolls(
   polls: PollAggregate,
   pollWeightCap = 0.55
 ): Record<string, number> {
-  const w = clamp(polls.sampleWeightedReliability * pollWeightCap * Math.min(1, polls.pollCount / 3), 0.15, pollWeightCap);
+  const reliabilityFactor =
+    polls.sampleWeightedReliability * Math.min(1, polls.pollCount / 3);
+  const w =
+    pollWeightCap >= 0.8
+      ? pollWeightCap
+      : clamp(reliabilityFactor * pollWeightCap, 0.15, pollWeightCap);
   const out: Record<string, number> = {};
   const keys = new Set([...Object.keys(historical), ...Object.keys(polls.shares)]);
   for (const k of keys) {
     const h = historical[k] ?? 0;
     const p = polls.shares[k] ?? h;
-    out[k] = h * (1 - w) + p * w;
+    // Partiti emergenti senza storico: peso sondaggio pieno
+    if (h <= 0 && p > 0) {
+      out[k] = p;
+    } else {
+      out[k] = h * (1 - w) + p * w;
+    }
   }
   // renormalize
   const sum = Object.values(out).reduce((a, b) => a + b, 0) || 1;

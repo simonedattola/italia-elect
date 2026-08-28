@@ -48,3 +48,6 @@ yarn-error.log*
 next-env.d.ts
 
 /src/generated/prisma
+
+# Agent sample (generated at runtime — too large for git/deploy)
+/src/data/agents/latest-sample.json

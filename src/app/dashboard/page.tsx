@@ -6,6 +6,8 @@ import { formatPercent } from "@/lib/utils";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
   title: "Dashboard",
   description: "Storico delle simulazioni elettorali.",
@@ -15,17 +17,18 @@ export default async function DashboardPage() {
   const sims = await listSimulations(50);
 
   return (
-    <div className="mx-auto max-w-6xl px-4 py-12 sm:px-6">
+    <div className="hero-atmosphere min-h-[calc(100vh-4rem)]">
+      <div className="mx-auto max-w-6xl px-4 py-12 sm:px-6 lg:px-8">
       <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <h1 className="font-[family-name:var(--font-display)] text-4xl text-[var(--it-blue)]">
+          <h1 className="text-4xl font-semibold tracking-tight text-white">
             Dashboard
           </h1>
           <p className="mt-2 text-[var(--muted)]">
             Storico simulazioni · esportazione e condivisione dai dettagli
           </p>
         </div>
-        <Button asChild>
+        <Button asChild variant="gradient">
           <Link href="/simula">Nuova simulazione</Link>
         </Button>
       </div>
@@ -71,6 +74,7 @@ export default async function DashboardPage() {
           })}
         </CardContent>
       </Card>
+      </div>
     </div>
   );
 }
