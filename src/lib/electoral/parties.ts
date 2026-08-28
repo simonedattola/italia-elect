@@ -92,6 +92,16 @@ export const PARTIES: PartyDefinition[] = [
     coalitionFamily: "DESTRA",
     foundedYear: 2020,
   },
+  {
+    slug: "futuro-nazionale",
+    name: "Futuro Nazionale",
+    shortName: "FN",
+    color: "#1A5276",
+    ideology: "RIGHT",
+    ideologyScore: 0.75,
+    coalitionFamily: "DESTRA",
+    foundedYear: 2026,
+  },
 ];
 
 export function getParty(slug: string): PartyDefinition | undefined {

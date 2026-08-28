@@ -1,0 +1,17 @@
+{
+  "virtualPopulation": 60000000,
+  "sampleSize": 5000,
+  "scalingFactor": 12000,
+  "meta": {
+    "generatedAt": "2026-08-27T20:56:17.513Z",
+    "demographics": {
+      "femalePct": 52.62,
+      "avgAge": 51.0242,
+      "urbanPct": 45.36,
+      "highEducationPct": 32.76
+    },
+    "virtualPopulation": 60000000,
+    "sampleSize": 5000,
+    "scalingFactor": 12000
+  }
+}

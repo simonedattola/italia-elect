@@ -18,11 +18,11 @@ const body = Source_Sans_3({
 
 export const metadata: Metadata = {
   title: {
-    default: "Italia Elect — Simulatore elettorale italiano",
-    template: "%s · Italia Elect",
+    default: "Italia Elect Game — Simulazione politica",
+    template: "%s · Italia Elect Game",
   },
   description:
-    "Simulatore statistico delle elezioni nazionali italiane. Dati storici, profilo candidato, Monte Carlo e intervalli di confidenza. Non è una previsione certa.",
+    "Gioco politico italiano: multiplayer, single player e sfida vs computer con simulazione realistica.",
   keywords: [
     "elezioni italiane",
     "simulatore elettorale",
@@ -45,7 +45,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="it" suppressHydrationWarning>
+    <html lang="it">
       <body className={`${display.variable} ${body.variable} antialiased`}>
         <Providers>
           <div className="flex min-h-screen flex-col">

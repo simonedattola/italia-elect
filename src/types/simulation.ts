@@ -24,6 +24,7 @@ export interface PartyDefinition {
   ideologyScore: number; // -1 … +1
   coalitionFamily: CoalitionFamily;
   foundedYear?: number;
+  isCustom?: boolean;
 }
 
 export interface CandidateInput {

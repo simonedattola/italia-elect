@@ -15,21 +15,9 @@ import {
   type CompatibilityBreakdown,
 } from "@/lib/intelligence/electoralCompatibility";
 
-function tokenizeIdeology(text: string): number {
-  const t = text.toLowerCase();
-  let score = 0;
-  const left = [
-    "sinistra", "progressist", "egualitar", "ambiental", "lgbt", "femminis",
-    "redistribuz", "welfare", "antifasc", "lavoratori", "sindacal", "accoglienza",
-  ];
-  const right = [
-    "conservator", "sovranist", "patriott", "sicurezza", "tradizion", "famiglia",
-    "immigrazion", "ordine", "nazione", "identit", "liberismo fiscale", "flat tax",
-  ];
-  for (const w of left) if (t.includes(w)) score -= 0.12;
-  for (const w of right) if (t.includes(w)) score += 0.12;
-  return clamp(score, -1, 1);
-}
+import {
+  enrichProfileWithCandidateText,
+} from "@/lib/intelligence/candidateTextSignals";
 
 function textDepth(description: string, program?: string): number {
   const len = description.length + (program?.length ?? 0);
@@ -47,6 +35,7 @@ export function buildIntelligenceProfile(
   recognition: RecognizedCandidate;
   personalBrandScore: number;
   personalImpactScore: number;
+  kbPartyCompatibility: number;
   compatibilityBreakdown?: CompatibilityBreakdown;
 } {
   const rec =
@@ -85,26 +74,12 @@ export function buildIntelligenceProfile(
       ideologyHint: figure?.ideologyHint,
     });
 
-    // Testo utente può ridurre solo se esprime un segnale ideologico chiaro
-    // e contraddice il partito — testo neutro NON deve abbassare un leader naturale.
-    const textIdeology = tokenizeIdeology(`${input.description} ${input.program ?? ""}`);
-    const textHasSignal = Math.abs(textIdeology) >= 0.2;
-    const textGap = Math.abs(textIdeology - party.ideologyScore);
-    let compatibility = breakdown.electoralCompatibilityScore;
-    const naturalLeader = figure?.defaultPartySlug === input.partySlug;
-    if (
-      textHasSignal &&
-      textGap > 0.55 &&
-      input.description.length > 40 &&
-      !breakdown.categoricalRejection &&
-      !naturalLeader
-    ) {
-      compatibility = Math.min(compatibility, clamp(100 - textGap * 100, 0, 70));
-    }
+    // Testo utente modula compatibilità e dimensioni del profilo
+    const compatibility = breakdown.electoralCompatibilityScore;
+    const kbPartyCompatibility = compatibility;
 
     const s = figure?.inferredScores;
-    const personalImpact = breakdown.personalImpactScore;
-    const profile: CandidateProfile = {
+    let profile: CandidateProfile = {
       notoriety: figure?.notorietyScore ?? rec.notoriety,
       credibility: breakdown.categoricalRejection
         ? Math.min(s?.credibility ?? 20, 15)
@@ -137,8 +112,6 @@ export function buildIntelligenceProfile(
       isPublicFigure: true,
       evidenceNotes: [
         ...rec.evidenceNotes,
-        `Personal Impact Score: ${personalImpact}/100.`,
-        `Electoral Compatibility: ${compatibility}/100.`,
         ...breakdown.notes,
       ],
       dataQuality: breakdown.categoricalRejection
@@ -148,12 +121,36 @@ export function buildIntelligenceProfile(
           : "high",
     };
 
+    profile = enrichProfileWithCandidateText(
+      profile,
+      input,
+      party,
+      figureUsable ? figure : undefined,
+    );
+
+    const personalImpact = computePersonalImpactScore({
+      notoriety: profile.notoriety,
+      mediaExposure: profile.mediaConsensus,
+      personalBrand: figure?.personalBrandScore ?? rec.notoriety,
+      communication: profile.communication,
+      isPublicFigure: true,
+    });
+
+    profile.evidenceNotes.push(
+      `Personal Impact Score: ${personalImpact}/100.`,
+      `Electoral Compatibility: ${profile.partyCompatibility}/100.`,
+    );
+
     return {
       ...profile,
-      recognition: { ...rec, partyCompatibility: compatibility },
+      recognition: { ...rec, partyCompatibility: profile.partyCompatibility },
       personalBrandScore: figure?.personalBrandScore ?? rec.notoriety,
       personalImpactScore: personalImpact,
-      compatibilityBreakdown: { ...breakdown, electoralCompatibilityScore: compatibility },
+      kbPartyCompatibility,
+      compatibilityBreakdown: {
+        ...breakdown,
+        electoralCompatibilityScore: profile.partyCompatibility,
+      },
     };
   }
 
@@ -167,8 +164,9 @@ export function buildIntelligenceProfile(
     program: input.program,
   });
   const compatibility = textCompat.electoralCompatibilityScore;
+  const kbPartyCompatibility = compatibility;
 
-  const profile: CandidateProfile = {
+  const profileBase: CandidateProfile = {
     notoriety: clamp(10 + depth * 0.15, 5, 35),
     credibility: clamp(40 + depth * 0.25 + (hasProgram ? 8 : 0), 20, 75),
     experience: clamp(25 + depth * 0.2, 10, 60),
@@ -191,6 +189,8 @@ export function buildIntelligenceProfile(
     dataQuality: depth < 40 ? "insufficient" : depth < 55 ? "low" : "medium",
   };
 
+  const profile = enrichProfileWithCandidateText(profileBase, input, party, undefined);
+
   const personalImpact = computePersonalImpactScore({
     notoriety: profile.notoriety,
     mediaExposure: profile.mediaConsensus,
@@ -206,17 +206,23 @@ export function buildIntelligenceProfile(
       notoriety: profile.notoriety,
       mediaExposure: profile.mediaConsensus,
       perceivedLeadership: profile.leadership,
-      partyCompatibility: compatibility,
+      partyCompatibility: profile.partyCompatibility,
       electoralImpact: {
-        newVotes: profile.undecidedAppeal * (compatibility / 100),
-        lostVotes: 100 - compatibility,
-        mobilizeAbstainers: profile.mobilization * (compatibility / 100),
+        newVotes:
+          profile.undecidedAppeal * (profile.partyCompatibility / 100),
+        lostVotes: 100 - profile.partyCompatibility,
+        mobilizeAbstainers:
+          profile.mobilization * (profile.partyCompatibility / 100),
         communication: profile.communication,
       },
     },
     personalBrandScore: clamp(profile.notoriety * 0.6 + profile.credibility * 0.2, 5, 22),
     personalImpactScore: personalImpact,
-    compatibilityBreakdown: textCompat,
+    kbPartyCompatibility,
+    compatibilityBreakdown: {
+      ...textCompat,
+      electoralCompatibilityScore: profile.partyCompatibility,
+    },
   };
 }
 
@@ -239,7 +245,8 @@ export function candidateElectoralDelta(
   profile: CandidateProfile,
   personalBrandScore?: number,
   personalImpactScore?: number,
-  categoricalRejection?: boolean
+  categoricalRejection?: boolean,
+  opts?: { naturalPartyLeader?: boolean },
 ): CandidateDelta {
   const impact =
     personalImpactScore ??
@@ -300,7 +307,7 @@ export function candidateElectoralDelta(
   }
 
   // Effetto positivo: solo se compatibilità sufficiente
-  const attractionPts =
+  let attractionPts =
     compat >= 0.45 && profile.isPublicFigure
       ? (profile.undecidedAppeal / 100) * 5 * compat * (impact / 100) +
         (brand >= 80 && compat >= 0.7 ? 1.5 * compat : 0)
@@ -309,12 +316,20 @@ export function candidateElectoralDelta(
         : 0;
 
   // Effetto negativo: perdita elettori storici / polarizzazione
-  // Personal impact amplifica il rigetto (non la compensazione)
-  const rejectionPts = rejected
+  let rejectionPts = rejected
     ? 10 + impact * 0.14 + (100 - profile.partyCompatibility) * 0.06
     : profile.partyCompatibility < 35
       ? (1 - compat) * (5 + impact * 0.07) + scandal * 3.5
       : scandal * 3;
+
+  // Leader naturale del partito (presidente/fondatore): polarizzazione esterna
+  // non equivale a perdita della base — coerente con sondaggi FN ~8% con Vannacci.
+  const naturalLeader = opts?.naturalPartyLeader && compat >= 0.65;
+  if (naturalLeader && !rejected) {
+    rejectionPts *= 0.2;
+    attractionPts += 0.7 * compat + (profile.mobilization / 100) * 1.2 * compat;
+    multiplier = Math.max(multiplier, 1.02 + compat * 0.06);
+  }
 
   let expectedPts =
     (multiplier * leakFactor - 1) * (8 + Math.min(impact, 60) * 0.06) +
@@ -327,6 +342,8 @@ export function candidateElectoralDelta(
     expectedPts = clamp(expectedPts, -28, -8);
   } else if (profile.partyCompatibility < 25) {
     expectedPts = clamp(expectedPts, -18, -2);
+  } else if (naturalLeader) {
+    expectedPts = Math.max(expectedPts, compat >= 0.85 ? 0.9 : compat >= 0.75 ? 0.5 : 0.2);
   }
 
   return {

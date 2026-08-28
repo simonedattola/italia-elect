@@ -1,31 +1,22 @@
 @import "tailwindcss";
 
 :root {
-  --background: #f7f8fa;
+  color-scheme: light;
+  --background: #f4f6fa;
   --foreground: #0f172a;
   --card: #ffffff;
-  --surface: #eef1f6;
+  --surface: #eef2f7;
   --surface-2: #e2e8f0;
-  --border: #d8dee8;
-  --muted: #64748b;
+  --border: #c5d0de;
+  --border-strong: #94a3b8;
+  --muted: #475569;
   --it-blue: #003399;
   --it-blue-dark: #002266;
   --it-red: #c8102e;
   --it-red-soft: #e8b4bc;
-}
-
-.dark {
-  --background: #0b1220;
-  --foreground: #e8eef7;
-  --card: #121a2b;
-  --surface: #182235;
-  --surface-2: #1e2a40;
-  --border: #2a3a55;
-  --muted: #94a3b8;
-  --it-blue: #4c7fff;
-  --it-blue-dark: #3a6af0;
-  --it-red: #e23b55;
-  --it-red-soft: #7a3040;
+  --it-green: #009246;
+  --accent-ai: #5b4fc7;
+  --chaos: #b45309;
 }
 
 @theme inline {
@@ -46,19 +37,11 @@ body {
   min-height: 100vh;
 }
 
-/* Atmospheric background — institutional Italian, not flat */
 .hero-atmosphere {
   background:
-    radial-gradient(ellipse 80% 50% at 20% -10%, rgba(0, 51, 153, 0.18), transparent 55%),
-    radial-gradient(ellipse 60% 40% at 90% 10%, rgba(200, 16, 46, 0.12), transparent 50%),
+    radial-gradient(ellipse 80% 50% at 20% -10%, rgba(0, 51, 153, 0.1), transparent 55%),
+    radial-gradient(ellipse 60% 40% at 90% 10%, rgba(200, 16, 46, 0.08), transparent 50%),
     linear-gradient(180deg, var(--background) 0%, var(--surface) 100%);
-}
-
-.dark .hero-atmosphere {
-  background:
-    radial-gradient(ellipse 80% 50% at 20% -10%, rgba(76, 127, 255, 0.2), transparent 55%),
-    radial-gradient(ellipse 60% 40% at 90% 10%, rgba(226, 59, 85, 0.12), transparent 50%),
-    linear-gradient(180deg, var(--background) 0%, #0e1628 100%);
 }
 
 .italy-stripe {
@@ -73,6 +56,32 @@ body {
   );
 }
 
+.glass {
+  background: var(--card);
+  border: 1px solid var(--border);
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
+}
+
+.hub-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.05);
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.hub-card:hover {
+  border-color: var(--border-strong);
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.08);
+}
+
+.glow-button-blue {
+  box-shadow: 0 4px 14px rgba(0, 51, 153, 0.25);
+}
+
+.glow-purple {
+  box-shadow: 0 4px 14px rgba(91, 79, 199, 0.15);
+}
+
 .prose-analysis h2 {
   font-family: var(--font-display), serif;
   font-size: 1.25rem;
@@ -83,4 +92,20 @@ body {
 .prose-analysis strong {
   color: var(--foreground);
   font-weight: 600;
+}
+
+.leaflet-popup-content {
+  color: var(--foreground);
+  margin: 12px 14px;
+}
+
+.leaflet-popup-content-wrapper {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.12);
+}
+
+.leaflet-container a {
+  color: var(--it-blue);
 }

@@ -18,7 +18,8 @@
     "test:compatibility": "tsx scripts/test-compatibility.ts",
     "test:harvester": "tsx scripts/test-harvester.ts",
     "harvest:elections": "tsx scripts/harvest-elections.ts",
-    "harvest:istat": "tsx scripts/harvest-istat.ts"
+    "harvest:istat": "tsx scripts/harvest-istat.ts",
+    "test:game": "tsx scripts/test-game.ts"
   },
   "dependencies": {
     "@ai-sdk/openai": "^4.0.29",

@@ -140,6 +140,7 @@ export interface IdentifyContext {
   skipRemote?: boolean;
   partySlug?: string;
   description?: string;
+  program?: string;
   /** Se l'utente conferma un omonimo */
   confirmedWikidataId?: string;
   /** Soglia auto-assegnazione (default 70) */
