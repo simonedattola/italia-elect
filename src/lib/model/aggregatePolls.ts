@@ -35,7 +35,7 @@ export function pollWeight(poll: PollRecord, now = Date.now(), halfLifeDays = 21
   return Math.max(0.02, freshness * sample * reliability);
 }
 
-export function aggregatePolls(polls: PollRecord[], now = Date.now()): PollAggregate {
+export function aggregatePolls(polls: PollRecord[], now = Date.now(), halfLifeDays = 21): PollAggregate {
   const usable = polls.filter((p) => Object.keys(p.shares).length > 0);
   if (usable.length === 0) {
     return {
@@ -50,7 +50,7 @@ export function aggregatePolls(polls: PollRecord[], now = Date.now()): PollAggre
   const acc = new Map<string, number>();
   const weightSum = new Map<string, number>();
   for (const poll of usable) {
-    const w = pollWeight(poll, now);
+    const w = pollWeight(poll, now, halfLifeDays);
     for (const [id, raw] of Object.entries(poll.shares)) {
       const corrected = raw - (poll.houseEffect?.[id] ?? 0);
       acc.set(id, (acc.get(id) ?? 0) + corrected * w);

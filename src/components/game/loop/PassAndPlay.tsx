@@ -56,11 +56,20 @@ function partyFromId(id: string): Draft {
   };
 }
 
-export function PassAndPlay({ demo }: { demo?: string }) {
+export function PassAndPlay({ demo, initialMode }: { demo?: string; initialMode?: ModeId }) {
   const lists = useMemo(() => currentNationalLists(), []);
-  const [step, setStep] = useState<Step>("mode");
-  const [mode, setMode] = useState<ModeId>("nazionali");
-  const [territory, setTerritory] = useState("Italia");
+  const opening = MODES.find((item) => item.id === initialMode);
+  const [step, setStep] = useState<Step>(() => {
+    if (!opening) return "mode";
+    if (opening.id === "ballottaggio" || opening.id === "regionale") return "territory";
+    return "p1";
+  });
+  const [mode, setMode] = useState<ModeId>(opening?.id ?? "nazionali");
+  const [territory, setTerritory] = useState(() => {
+    if (opening?.level === "comunali") return "Roma";
+    if (opening?.level === "regionali") return "Lazio";
+    return "Italia";
+  });
   const [p1, setP1] = useState<Draft>(() => partyFromId("fratelli-ditalia"));
   const [p2, setP2] = useState<Draft>(() => partyFromId("partito-democratico"));
   const [rounds, setRounds] = useState<{ player: 1 | 2; theme: string; choice: number }[]>([]);
@@ -117,16 +126,18 @@ export function PassAndPlay({ demo }: { demo?: string }) {
     if (step !== "night" || !result) return;
     setRevealed(0);
     const timer = window.setInterval(() => {
-      setRevealed((value) => {
-        if (value >= result.shares.length) {
-          window.clearInterval(timer);
-          return value;
-        }
-        return value + 1;
-      });
-    }, 450);
+      setRevealed((value) => value + 1);
+    }, 680);
     return () => window.clearInterval(timer);
   }, [step, result]);
+
+  useEffect(() => {
+    if (step !== "night" || !result) return;
+    const total = Math.min(result.shares.length, 8);
+    if (revealed < total) return;
+    const timer = window.setTimeout(() => setStep("result"), 1600);
+    return () => window.clearTimeout(timer);
+  }, [step, result, revealed]);
 
   useEffect(() => {
     if (step !== "round") return;
@@ -199,7 +210,6 @@ export function PassAndPlay({ demo }: { demo?: string }) {
     setResult(body);
     const encoded = btoa(unescape(encodeURIComponent(JSON.stringify({ label: body.label, players: body.players.map((player) => ({ name: player.candidateName, party: player.partyName, percentage: player.percentage, score: player.score })), notes: body.notes.filter((note) => note.includes("Nota informativa") || note.includes("riconosciuto")).slice(0, 4) }))));
     setShare(`/gioco/locale?s=${encoded}`);
-    window.setTimeout(() => setStep("result"), 700);
   }
 
   return (
@@ -211,11 +221,11 @@ export function PassAndPlay({ demo }: { demo?: string }) {
       </p>
 
       {step === "mode" ? (
-        <div className="mt-8 space-y-3">
+        <div className="mt-8 grid gap-3">
           {MODES.map((item) => (
-            <button key={item.id} type="button" onClick={() => chooseMode(item.id)} className="hub-card w-full rounded-2xl p-4 text-left">
-              <span className="text-xs text-[var(--muted)]">{item.index}</span>
-              <span className="mt-1 block text-lg font-semibold">{item.title}</span>
+            <button key={item.id} type="button" onClick={() => chooseMode(item.id)} className="mode-card min-h-24 w-full rounded-2xl p-4 text-left text-base active:scale-[0.98]">
+              <span className="text-xs text-white/40">{item.index}</span>
+              <span className="mt-1 block font-[family-name:var(--font-display)] text-2xl">{item.title}</span>
               <span className="mt-1 block text-sm text-[var(--muted)]">{item.text}</span>
             </button>
           ))}
@@ -225,12 +235,12 @@ export function PassAndPlay({ demo }: { demo?: string }) {
       {step === "territory" ? (
         <label className="mt-8 block text-sm">
           Territorio
-          <select className="mt-2 w-full rounded-xl border border-[var(--border)] bg-[var(--card)] px-3 py-3" value={territory} onChange={(event) => setTerritory(event.target.value)}>
+          <select className="mt-2 min-h-14 w-full rounded-xl border border-[var(--border)] bg-[var(--card)] px-3 py-3 text-base" value={territory} onChange={(event) => setTerritory(event.target.value)}>
             {territories.map((name) => (
               <option key={name}>{name}</option>
             ))}
           </select>
-          <button type="button" className="mt-4 w-full rounded-xl bg-[var(--it-blue)] px-4 py-3 text-sm font-semibold text-white" onClick={() => setStep("p1")}>
+          <button type="button" className="mt-4 min-h-14 w-full rounded-xl bg-[var(--it-blue)] px-4 py-3 text-base font-semibold text-white active:scale-[0.98]" onClick={() => setStep("p1")}>
             Continua
           </button>
         </label>
@@ -263,7 +273,7 @@ export function PassAndPlay({ demo }: { demo?: string }) {
           </p>
           <button
             type="button"
-            className="mt-8 w-full rounded-xl bg-[var(--it-blue)] px-4 py-3 text-sm font-semibold text-white"
+            className="mt-8 min-h-14 w-full rounded-xl bg-[var(--it-blue)] px-4 py-3 text-sm font-semibold text-white"
             onClick={() => setStep(step === "handoff" ? "p2" : "round")}
           >
             Ho il telefono
@@ -280,7 +290,7 @@ export function PassAndPlay({ demo }: { demo?: string }) {
               <button
                 key={label}
                 type="button"
-                className="rounded-xl border border-[var(--border)] bg-[var(--card)] px-3 py-6 text-sm font-semibold"
+                className="min-h-28 rounded-xl border border-[var(--border)] bg-[var(--card)] px-3 py-6 text-base font-semibold active:scale-[0.98]"
                 onClick={() => {
                   const player = (roundIndex % 2 === 0 ? 1 : 2) as 1 | 2;
                   const theme = THEMES[roundIndex % 3]!.id;
@@ -301,23 +311,11 @@ export function PassAndPlay({ demo }: { demo?: string }) {
       ) : null}
 
       {step === "night" ? (
-        <section className="mt-16" aria-live="polite">
-          <p className="text-xs uppercase tracking-[0.2em] text-[var(--muted)]">Sera dello spoglio</p>
-          <h2 className="mt-2 font-[family-name:var(--font-display)] text-5xl">I seggi stanno arrivando.</h2>
-          <ul className="mt-6 space-y-3">
-            {(result?.shares ?? []).slice(0, revealed).map((share) => (
-              <li key={share.id}>
-                <div className="flex justify-between text-sm">
-                  <span>{share.name}</span>
-                  <span>{share.mean.toFixed(1)}%</span>
-                </div>
-                <div className="mt-1 h-2 rounded-full bg-[var(--surface-2)]">
-                  <div className="h-2 rounded-full" style={{ width: `${Math.min(100, share.mean)}%`, background: share.color }} />
-                </div>
-              </li>
-            ))}
-          </ul>
-        </section>
+        <NightReveal
+          shares={result?.shares ?? []}
+          revealed={revealed}
+          onDone={() => setStep("result")}
+        />
       ) : null}
 
       {step === "result" && result ? (
@@ -354,6 +352,48 @@ export function PassAndPlay({ demo }: { demo?: string }) {
   );
 }
 
+function NightReveal({
+  shares,
+  revealed,
+  onDone,
+}: {
+  shares: { id: string; name: string; color: string; mean: number }[];
+  revealed: number;
+  onDone: () => void;
+}) {
+  const total = Math.min(shares.length, 8);
+  const called = Math.min(revealed, total);
+  const sections = total === 0 ? 0 : Math.round((called / total) * 100);
+  return (
+    <section className="night-screen -mx-4 mt-6 rounded-3xl px-4 py-8" aria-live="polite">
+      <p className="text-xs uppercase tracking-[0.22em] text-[#7aa7ff]">Sera dello spoglio</p>
+      <p className="mt-4 font-[family-name:var(--font-display)] text-7xl leading-none tabular-nums">{sections}%</p>
+      <p className="mt-2 text-sm text-white/60">sezioni scrutinate · {called} di {total} liste chiamate</p>
+      <ul className="mt-8 space-y-4">
+        {shares.slice(0, called).map((share) => (
+          <li key={share.id}>
+            <div className="flex items-baseline justify-between gap-3">
+              <span className="text-base">{share.name}</span>
+              <span className="font-[family-name:var(--font-display)] text-3xl tabular-nums">{share.mean.toFixed(1)}</span>
+            </div>
+            <div className="mt-2 h-3 overflow-hidden rounded-full bg-white/10">
+              <div
+                className="h-3 rounded-full transition-[width] duration-700 ease-out"
+                style={{ width: `${Math.min(100, share.mean)}%`, background: share.color }}
+              />
+            </div>
+          </li>
+        ))}
+      </ul>
+      {called >= total && total > 0 ? (
+        <button type="button" className="mt-8 min-h-14 w-full rounded-xl bg-[#0166fe] px-4 py-3 text-base font-semibold text-white active:scale-[0.98]" onClick={onDone}>
+          Il risultato
+        </button>
+      ) : null}
+    </section>
+  );
+}
+
 function PlayerForm({
   title,
   draft,
@@ -381,12 +421,12 @@ function PlayerForm({
       <h2 className="text-2xl font-semibold">{title}</h2>
       <label className="block text-sm">
         Nome in pista
-        <input className="mt-1 w-full rounded-xl border border-[var(--border)] bg-[var(--card)] px-3 py-3" value={draft.displayName} onChange={(event) => onChange({ ...draft, displayName: event.target.value })} />
+        <input className="mt-1 min-h-14 w-full rounded-xl border border-[var(--border)] bg-[var(--card)] px-3 py-3 text-base" value={draft.displayName} onChange={(event) => onChange({ ...draft, displayName: event.target.value })} />
       </label>
       <label className="block text-sm">
         Lista
         <select
-          className="mt-1 w-full rounded-xl border border-[var(--border)] bg-[var(--card)] px-3 py-3"
+          className="mt-1 min-h-14 w-full rounded-xl border border-[var(--border)] bg-[var(--card)] px-3 py-3 text-base"
           value={draft.custom ? "custom" : draft.partyId}
           onChange={(event) => {
             if (event.target.value === "custom") onChange({ ...draft, custom: true, partyName: "Lista nuova", color: "#94a3b8", ideology: 0 });
@@ -423,10 +463,10 @@ function PlayerForm({
       ) : null}
       <label className="block text-sm">
         Candidato o leader
-        <input required className="mt-1 w-full rounded-xl border border-[var(--border)] bg-[var(--card)] px-3 py-3" value={draft.candidateName} placeholder="Nome e cognome" onChange={(event) => onChange({ ...draft, candidateName: event.target.value })} />
+        <input required className="mt-1 min-h-14 w-full rounded-xl border border-[var(--border)] bg-[var(--card)] px-3 py-3 text-base" value={draft.candidateName} placeholder="Nome e cognome" onChange={(event) => onChange({ ...draft, candidateName: event.target.value })} />
       </label>
       {quick ? null : <p className="text-xs text-[var(--muted)]">Un nome noto viene letto dall&apos;archivio curato. Un nome sconosciuto resta un candidato descritto da te.</p>}
-      <button type="submit" className="w-full rounded-xl bg-[var(--it-blue)] px-4 py-3 text-sm font-semibold text-white">
+      <button type="submit" className="min-h-14 w-full rounded-xl bg-[var(--it-blue)] px-4 py-3 text-base font-semibold text-white active:scale-[0.98]">
         Conferma e copri
       </button>
     </form>

@@ -6,7 +6,7 @@ Non serve un database. I numeri in `src/data/generated` sono prodotti dallo scri
 
 ## Cosa fa
 
-- **Archivio** (`/archivio`): Costituente e Camera 1946–2022 dal bollettino compilato, microdati Camera e Senato 2022, europee 2024, regionali Lazio e Lombardia 2023, il comune presente nel CSV del 28 luglio 2024.
+- **Archivio** (`/archivio`): Costituente e Camera 1946–2022, Senato 1948–2018 dagli zip Eligendo, europee 1979–2024, l'ultimo ciclo regionale disponibile per 16 regioni, 93 capoluoghi dal 2009 e i referendum nazionali dal 1946.
 - **Simulatore** (`/simulatore`): politiche, regionali e comunali. Lo scenario nazionale di default è la media dei sondaggi pubblicati (Wikipedia, sezione 2026), non il replay del 2022. Europee restano in archivio e nei backtest di riparto, non come consultazione simulabile. Monte Carlo con shock comune, rumore di collegio, scenari e leader.
 - **Gioco** (`/gioco/locale`): due giocatori sullo stesso telefono (ballottaggio, regione, coalizioni, duello a turni, draft), con lo stesso motore. `/gioco` tiene le modalità precedenti.
 - **Link** (`/condividi?s=`): lo scenario sta nel query string, senza account.
@@ -56,22 +56,24 @@ Lo scenario nazionale non dipende da queste chiavi: i sondaggi stanno in `src/da
 npm run data:ingest   # scarica i CSV pubblici e riscrive src/data/generated
 npm run data:map      # opzionale, richiede python3: rigenera la mappa SVG
 npm run data:polls    # riscarica la voce Wikipedia e riscrive src/data/polls/published.json
+npm run data:backtest # sondaggi pre-silenzio per Camera 2018/2022 e Europee 2019/2024
+npm run data:historical # zip Eligendo: Senato, Europee, regionali, capoluoghi, referendum
 ```
 
 L'ingest mette i grezzi in `data/raw/` (gitignorato) e, se il file c'è già, non lo riscarica. Fonti, alla data di scarico 2026-10-23:
 
 - Compilazione Zenodo dei dati Eligendo, DOI [10.5281/zenodo.13864339](https://zenodo.org/records/13864339): percentuali e seggi di Costituente e Camera 1946–2022. I voti assoluti di quel CSV sono corrotti e non sono importati.
-- Ministero dell'Interno, DAIT / Eligendo, catalogo open data: Camera 2022, Senato 2022, europee 2024, regionali 12 febbraio 2023 (Lazio e Lombardia), comunali 28 luglio 2024.
+- Ministero dell'Interno, DAIT / Eligendo, catalogo open data: Senato 1948–2018, europee 1979–2019, l'ultimo ciclo regionale trovato per 16 regioni, capoluoghi dal 2009, referendum 1946–presente, più i CSV comunali di Camera, Senato ed europee 2024.
 - Limiti regionali da openpolis/geojson-italy, semplificati.
 
 ### Copertura
 
 | Livello | Presente | Assente |
 | --- | --- | --- |
-| Nazionali | Bollettino Camera/Costituente 1946–2022. Microdati Camera e Senato 2022 con voti. | Senato storico. Voti assoluti 1946–2018. Circoscrizione Estero (8 deputati, 4 senatori). Collegi uninominali di Senato in Trentino-Alto Adige e Valle d'Aosta. |
-| Europee | Somma comunale 2024, 76 seggi nel modello. | 1979–2019. |
-| Regionali | Lazio e Lombardia, 12 febbraio 2023, con il dettaglio provinciale del file. | Gli altri cicli dal 1970 e le altre regioni. La legge regionale non è codificata: il simulatore è parametrico. |
-| Comunali | Corte Palasio, 28 luglio 2024. | Il resto dei comuni dal 1946. Il file `comunali-20240609` è stato scartato: le righe sono regionali del 12 febbraio 2023. |
+| Nazionali | Bollettino Camera/Costituente 1946–2022. Senato 1948–2018 dagli zip. Microdati Camera e Senato 2022 con voti. | Voti assoluti Camera 1946–2018. Circoscrizione Estero. Collegi uninominali di Senato in Trentino-Alto Adige e Valle d'Aosta. |
+| Europee | Zip 1979–2019 e somma comunale 2024. 76 seggi nel modello. | Il voto fuori sede 2024, pubblicato a parte. |
+| Regionali | Ultimo scrutinio negli zip per 16 regioni. Il prior territoriale dei scenari usa lo scostamento del Sì referendario. | Friuli-Venezia Giulia, Sardegna, Trentino-Alto Adige, Valle d'Aosta: non sono in quegli zip. La legge regionale non è codificata. |
+| Comunali | 93 capoluoghi con un turno dal 2009, più Corte Palasio il 28 luglio 2024. | Agrigento, Aosta, Bolzano, Caltanissetta, Catania, Enna, Gorizia, Messina, Palermo, Pordenone, Ragusa, Siracusa, Trapani, Trento, Trieste, Udine. Il resto dei comuni. |
 
 Il microdato Camera 2022 dà Fratelli d'Italia intorno al 26,2%, il bollettino 25,98%. I due file restano distinti e non sono stati riallineati.
 

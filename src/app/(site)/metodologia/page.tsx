@@ -1,6 +1,12 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { dataCatalog } from "@/data/generated/registry";
+import { runBacktests } from "@/lib/model/backtest";
+
+function points(value: number | null, digits = 1): string {
+  if (value == null) return "—";
+  return value.toLocaleString("it-IT", { minimumFractionDigits: digits, maximumFractionDigits: digits });
+}
 
 export const metadata: Metadata = {
   title: "Metodologia",
@@ -9,6 +15,7 @@ export const metadata: Metadata = {
 };
 
 export default function MethodologyPage() {
+  const backtests = runBacktests();
   return (
     <article className="prose-analysis mx-auto max-w-3xl px-4 py-10 text-[15px] leading-relaxed sm:px-6">
       <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--it-blue)]">Trasparenza</p>
@@ -52,17 +59,21 @@ export default function MethodologyPage() {
       <p>
         Le europee del simulatore sono un proporzionale nazionale con soglia del 4%, Hare e 76 seggi, la quota italiana
         del 2024. Non ci sono coalizioni. La baseline è la somma comunale del CSV Eligendo del 9 giugno 2024. L&apos;affluenza
-        pubblicata è quella che esce dal file, circa 49,7%, e non è stata corretta a tavolino.
+        pubblicata è quella che esce dal file, circa 49,7%, e non è stata corretta a tavolino. Le europee 1979–2019
+        stanno in archivio e nel backtest di calibrazione, non come consultazione del simulatore.
       </p>
       <p>
         Le regionali usano una soglia e un premio scelti da chi simula. Non è la codifica di ciascuna legge regionale.
-        I dati reali coprono Lazio e Lombardia del 12 febbraio 2023. La dimensione del consiglio è un parametro. Il
-        premio, se indichi una coalizione, viene ripartito fra le sue liste dopo il proporzionale sul resto dei seggi.
+        Per ogni regione è conservato l&apos;ultimo scrutinio trovato negli zip open data. La dimensione del consiglio è un
+        parametro. Il premio, se indichi una coalizione, viene ripartito fra le sue liste dopo il proporzionale sul resto
+        dei seggi. Uno scenario regionale è scalato, al massimo del 20%, con lo scostamento storico del Sì referendario
+        di quella regione rispetto all&apos;Italia.
       </p>
       <p>
         Le comunali seguono uno schema del testo unico per i comuni sopra 15.000 abitanti: soglia di lista e, se il
         gruppo in testa non ha già il 60% dei seggi, un premio che lo porta a quella quota. Non va usato per i comuni
-        più piccoli. Nell&apos;archivio aperto c&apos;è un solo comune, Corte Palasio, dal CSV del 28 luglio 2024.
+        più piccoli. I capoluoghi con un turno dal 2009 sono un input del gioco e del simulatore. Corte Palasio resta
+        il CSV del 28 luglio 2024.
       </p>
 
       <h2>Monte Carlo</h2>
@@ -97,6 +108,50 @@ export default function MethodologyPage() {
         <code> SOCIAL_API_URL</code> può restituire <code>{"{ score }"}</code> fra −1 e 1. Senza chiavi e senza URL i fattori
         restano a zero: non c&apos;è un punteggio di riserva. L&apos;interfaccia applica una fonte esterna solo se premi il
         pulsante.
+      </p>
+
+      <h2>Backtest pre-voto</h2>
+      <p>
+        Per Camera 2018, Camera 2022, Europee 2019 e Europee 2024 la previsione è la media dei sondaggi con lavoro sul
+        campo chiuso almeno 15 giorni prima del voto, la finestra della legge 28/2000. Non entra nulla pubblicato dopo.
+        L&apos;errore di lista è la media degli scarti assoluti sulle liste sopra il 3%. L&apos;errore di coalizione è lo stesso
+        conto su centrodestra e centrosinistra. L&apos;errore di seggio è metà della distanza L1 fra i seggi proporzionali
+        del modello (Hare) e quelli dello scrutinio: è il numero di seggi che cambiano lista. Gli uninominali del 2018 e
+        del 2022 non sono assegnati, perché non c&apos;è una baseline di collegio anteriore al voto.
+      </p>
+      <div className="mt-4 overflow-x-auto">
+        <table className="w-full min-w-[36rem] border-collapse text-left text-sm">
+          <caption className="sr-only">Errori del backtest pre-silenzio elettorale</caption>
+          <thead>
+            <tr className="border-b border-[var(--border)] text-xs uppercase tracking-[0.14em] text-[var(--muted)]">
+              <th className="py-2 pr-3 font-semibold">Elezione</th>
+              <th className="py-2 pr-3 font-semibold">Sondaggi</th>
+              <th className="py-2 pr-3 font-semibold">Silenzio</th>
+              <th className="py-2 pr-3 font-semibold">MAE liste</th>
+              <th className="py-2 pr-3 font-semibold">MAE coalizioni</th>
+              <th className="py-2 font-semibold">Seggi spostati</th>
+            </tr>
+          </thead>
+          <tbody>
+            {backtests.map((row) => (
+              <tr key={row.id} className="border-b border-[var(--border)]">
+                <th className="py-3 pr-3 font-semibold text-[var(--foreground)]">{row.label}</th>
+                <td className="py-3 pr-3 tabular-nums">{row.pollCount}</td>
+                <td className="py-3 pr-3 tabular-nums">{row.cutoff}</td>
+                <td className="py-3 pr-3 tabular-nums">{points(row.listMae)}</td>
+                <td className="py-3 pr-3 tabular-nums">{points(row.coalitionMae)}</td>
+                <td className="py-3 tabular-nums">{points(row.proportionalSeatError, 0)}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <p>
+        Il 2018 è il caso largo: l&apos;ultimo sondaggio lecito è del 16 febbraio e non vede il recupero di Lega e Movimento
+        5 Stelle nelle due settimane di silenzio. Su 386 seggi proporzionali ne risultano spostati 40. Un&apos;emivita più
+        corta di 21 giorni non chiude quel buco e peggiora la calibrazione delle europee 2019, quindi l&apos;emivita del
+        modello non è stata accorciata. I seggi europei di confronto sono quelli della delegazione pubblicata, perché
+        gli zip non riportano i seggi.
       </p>
 
       <h2>Liste ipotetiche e candidati</h2>

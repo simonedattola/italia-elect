@@ -3,9 +3,9 @@
  * I campi assenti in fonte restano null: non si stimano conteggi mancanti.
  */
 
-export type ElectionLevel = "nazionali" | "europee" | "regionali" | "comunali";
+export type ElectionLevel = "nazionali" | "europee" | "regionali" | "comunali" | "referendum";
 
-export type Chamber = "camera" | "senato" | "costituente" | "parlamento-europeo" | "consiglio" | "comunale";
+export type Chamber = "camera" | "senato" | "costituente" | "parlamento-europeo" | "consiglio" | "comunale" | "referendum";
 
 export type SeatScope = "totale" | "proporzionale" | "proporzionale-mattarellum" | "non-disponibile";
 
@@ -96,7 +96,7 @@ export interface ElectionSummary {
 }
 
 export interface CoverageGap {
-  level: ElectionLevel | "estero" | "sondaggi" | "sentiment";
+  level: ElectionLevel | "estero" | "sondaggi" | "sentiment" | "referendum";
   detail: string;
 }
 

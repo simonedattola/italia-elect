@@ -5,12 +5,19 @@ export const metadata = {
   description: "Due giocatori, un telefono: ballottaggio, regione, coalizioni, duello a turni o draft.",
 };
 
-export default async function LocalePage({ searchParams }: { searchParams: Promise<{ caso?: string; s?: string }> }) {
+const MODES = ["ballottaggio", "regionale", "nazionali", "duello", "draft"] as const;
+
+export default async function LocalePage({
+  searchParams,
+}: {
+  searchParams: Promise<{ caso?: string; s?: string; mode?: string }>;
+}) {
   const params = await searchParams;
   if (params.s) {
     return <SharedResult encoded={params.s} />;
   }
-  return <PassAndPlay demo={params.caso} />;
+  const initialMode = MODES.find((mode) => mode === params.mode);
+  return <PassAndPlay demo={params.caso} initialMode={initialMode} />;
 }
 
 function SharedResult({ encoded }: { encoded: string }) {

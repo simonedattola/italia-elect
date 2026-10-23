@@ -1056,7 +1056,7 @@ async function main() {
         `    case ${JSON.stringify(e.id)}:\n      return (await import(${JSON.stringify(`./${e.id}.json`)})).default as ElectionRecord;`,
     )
     .join("\n");
-  const registry = `/* Generato da scripts/ingest/build-catalog.ts. Non modificare a mano. */\nimport type { ElectionRecord } from "@/lib/data/types";\nimport catalog from "./catalog.json";\nimport baseline from "./simulator-baseline.json";\nimport type { DataCatalog } from "@/lib/data/types";\n\nexport const dataCatalog = catalog as DataCatalog;\nexport const simulatorBaseline = baseline;\n\nexport async function loadElection(id: string): Promise<ElectionRecord | null> {\n  switch (id) {\n${cases}\n    default:\n      return null;\n  }\n}\n`;
+  const registry = `/* Generato da scripts/ingest/build-catalog.ts. Non modificare a mano. */\nimport type { ElectionRecord } from "@/lib/data/types";\nimport catalog from "./catalog.json";\nimport baseline from "./simulator-baseline.json";\nimport type { DataCatalog } from "@/lib/data/types";\n\nexport const dataCatalog = catalog as DataCatalog;\nexport const simulatorBaseline = baseline;\n\nexport async function loadElection(id: string): Promise<ElectionRecord | null> {\n  switch (id) {\n${cases}\n    default: {\n      const pack = (await import("./eligendo-historical.json")).default as { records: Record<string, ElectionRecord> };\n      return pack.records[id] ?? null;\n    }\n  }\n}\n`;
   await writeFile(path.join(OUT, "registry.ts"), registry);
   console.log("elezioni", elections.length);
 }

@@ -14,6 +14,7 @@ import {
   inputFromPayload,
   listsFor,
   paintRegions,
+  regionalChoices,
 } from "@/lib/simulator/project";
 
 const LEVELS: { id: SharePayload["level"]; label: string }[] = [
@@ -204,7 +205,7 @@ export function SimulatorApp({ initial }: { initial?: SharePayload }) {
 
         {payload.level === "regionali" ? (
           <label className="block text-sm font-medium">
-            Regione con dati 2023
+            Regione, ultimo scrutinio aperto
             <select
               className="mt-1 w-full rounded-md border border-[var(--border)] bg-[var(--card)] px-2 py-2"
               value={payload.region}
@@ -216,8 +217,12 @@ export function SimulatorApp({ initial }: { initial?: SharePayload }) {
                 setShareHref(null);
               }}
             >
-              <option>Lombardia</option>
-              <option>Lazio</option>
+              {(regionalChoices().length ? regionalChoices() : [{ name: "Lombardia", date: "" }, { name: "Lazio", date: "" }]).map((region) => (
+                <option key={region.name} value={region.name}>
+                  {region.name}
+                  {region.date ? ` · ${region.date}` : ""}
+                </option>
+              ))}
             </select>
           </label>
         ) : null}

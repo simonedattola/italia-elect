@@ -2,7 +2,8 @@ import type { SharePayload } from "@/lib/model/shareLink";
 import { affinitySwing } from "@/lib/model/affinity";
 import type { SenateRegionBaseline, SimulationInput } from "@/lib/model/engine";
 import type { CollegeBaseline } from "@/lib/electoral/rosatellum";
-import { slugify } from "@/lib/electoral/canonical";
+import regionalArchive from "@/data/generated/eligendo-regions.json";
+import { canonicalListId, colorForList, ideologyForList, slugify } from "@/lib/electoral/canonical";
 import { currentNationalLists, currentPollMeta, defaultCommonShockSd } from "@/lib/model/currentScenario";
 import baseline from "@/data/generated/simulator-baseline.json";
 
@@ -87,9 +88,32 @@ export function baselineIdFor(level: SharePayload["level"]): string {
   return `sondaggi-${currentPollMeta().retrievedAt}`;
 }
 
+interface RegionalArchive {
+  regions: { name: string; date: string; lists: { name: string; percentage: number }[] }[];
+}
+
+export function regionalChoices(): { name: string; date: string }[] {
+  return (regionalArchive as RegionalArchive).regions.map((region) => ({ name: region.name, date: region.date }));
+}
+
+function listsFromNames(lists: { name: string; percentage: number }[]): BaselineList[] {
+  return lists.map((list) => {
+    const id = canonicalListId(list.name);
+    return {
+      id,
+      name: list.name,
+      color: colorForList(id),
+      percentage: list.percentage,
+      ideology: ideologyForList(id),
+    };
+  });
+}
+
 export function listsFor(level: SharePayload["level"], region?: string): BaselineList[] {
   if (level === "europee") return mergeLists(baseline.europee.lists);
   if (level === "regionali") {
+    const archived = (regionalArchive as RegionalArchive).regions.find((item) => item.name === region);
+    if (archived?.lists.length) return mergeLists(listsFromNames(archived.lists));
     const found = baseline.regionali.find((item) => item.name === region) ?? baseline.regionali[0];
     return mergeLists(found?.lists ?? []);
   }

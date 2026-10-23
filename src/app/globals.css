@@ -172,6 +172,30 @@ body {
   min-height: 100vh;
 }
 
+.home-entry {
+  background:
+    radial-gradient(ellipse 80% 50% at 100% 0%, rgba(1, 102, 254, 0.16), transparent 50%),
+    #091627;
+  color: white;
+}
+
+.mode-card {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  transition: border-color 0.2s, transform 0.2s, background 0.2s;
+}
+
+.mode-card:hover {
+  border-color: rgba(1, 102, 254, 0.8);
+  background: rgba(1, 102, 254, 0.08);
+}
+
+.night-screen {
+  background:
+    radial-gradient(ellipse at center, rgba(1, 102, 254, 0.16), transparent 60%),
+    #070d16;
+}
+
 .hero-atmosphere {
   background:
     radial-gradient(ellipse 70% 50% at 0% 0%, rgba(1, 102, 254, 0.18), transparent 60%),

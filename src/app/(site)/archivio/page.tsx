@@ -9,12 +9,13 @@ export const metadata: Metadata = {
   description: "Scrutini italiani normalizzati da fonti pubbliche, con percentuali, seggi e note di copertura.",
 };
 
-const ORDER: ElectionLevel[] = ["nazionali", "europee", "regionali", "comunali"];
+const ORDER: ElectionLevel[] = ["nazionali", "europee", "regionali", "comunali", "referendum"];
 const LABELS: Record<ElectionLevel, string> = {
   nazionali: "Nazionali",
   europee: "Europee",
   regionali: "Regionali",
   comunali: "Comunali",
+  referendum: "Referendum",
 };
 
 export default function ArchivePage() {

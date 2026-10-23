@@ -1,3 +1,4 @@
+import { capoluogoLists } from "@/lib/data/capoluoghi";
 import { assessLeaderWithFallback, type LeaderAssessment } from "@/lib/figures/assess";
 import { REGION_NAMES } from "@/lib/electoral/canonical";
 import { runSimulation, type SimulationOutput } from "@/lib/model/engine";
@@ -66,8 +67,9 @@ export async function simulateContest(request: ContestRequest): Promise<ContestR
     request.players.map((player) => assessLeaderWithFallback(player.candidateName, player.partyId, player.ideology)),
   );
   const national = currentNationalLists();
-  const regional = request.level === "regionali" ? listsFor("regionali", request.territory === "Lombardia" || request.territory === "Lazio" ? request.territory : "Lombardia") : [];
-  const baseLists = request.level === "regionali" && regional.length ? regional : national;
+  const regional = request.level === "regionali" ? listsFor("regionali", request.territory) : [];
+  const municipal = request.level === "comunali" ? capoluogoLists(request.territory) : [];
+  const baseLists = request.level === "regionali" && regional.length ? regional : municipal.length ? municipal : national;
   const lists = baseLists.map((list) => ({
     id: list.id,
     name: list.name,

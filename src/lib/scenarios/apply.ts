@@ -1,3 +1,4 @@
+import { regionalPriorScale } from "@/lib/data/territorialPriors";
 import type { ContestLevel, ScenarioApplication, ScenarioInput, ScenarioMovement, ScenarioTheme } from "./types";
 import { analogueFor } from "./library";
 
@@ -142,7 +143,8 @@ export function applyScenarioStack(
       notes.push(`${scenario.title}: intensità zero, nessuno spostamento.`);
       continue;
     }
-    const scale = 2.6 * intensity * DURATION[scenario.duration] * scopeScale(scenario.scope, level);
+    const prior = scenario.scope === "regionale" ? regionalPriorScale(scenario.territory) : 1;
+    const scale = 2.6 * intensity * DURATION[scenario.duration] * scopeScale(scenario.scope, level) * prior;
     const affected = new Set(scenario.affectedPartyIds ?? []);
     const local: Record<string, number> = {};
     for (const list of known.values()) {
@@ -168,8 +170,12 @@ export function applyScenarioStack(
       .slice(0, 4)
       .map(([id, delta]) => `${id} ${delta > 0 ? "+" : ""}${delta.toFixed(1)}`)
       .join(", ");
+    const priorNote =
+      prior !== 1 && scenario.territory
+        ? ` Prior referendario di ${scenario.territory}: scala ${prior.toFixed(2)} sullo scostamento storico del Sì.`
+        : "";
     notes.push(
-      `${scenario.title} (intensità ${Math.round(intensity * 100)}%, ${scenario.duration}, ${where}${themes.length ? `, temi: ${themes.join(", ")}` : ""}): ${moved || "nessuna lista presente da spostare"}. Schema di issue ownership, non una stima causale.`,
+      `${scenario.title} (intensità ${Math.round(intensity * 100)}%, ${scenario.duration}, ${where}${themes.length ? `, temi: ${themes.join(", ")}` : ""}): ${moved || "nessuna lista presente da spostare"}. Schema di issue ownership, non una stima causale.${priorNote}`,
     );
     const analogue = analogueFor(scenario.themes);
     if (analogue) notes.push(analogue);

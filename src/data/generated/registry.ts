@@ -59,7 +59,11 @@ export async function loadElection(id: string): Promise<ElectionRecord | null> {
       return (await import("./europee-2024.json")).default as ElectionRecord;
     case "comunali-2024-07-28":
       return (await import("./comunali-2024-07-28.json")).default as ElectionRecord;
-    default:
-      return null;
+    default: {
+      const pack = (await import("./eligendo-historical.json")).default as {
+        records: Record<string, ElectionRecord>;
+      };
+      return pack.records[id] ?? null;
+    }
   }
 }

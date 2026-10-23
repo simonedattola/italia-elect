@@ -16,15 +16,15 @@ export function SiteHeader() {
             Italia Elect
           </span>
           <span className="mt-0.5 block text-[10px] uppercase tracking-[0.18em] text-[var(--muted)]">
-            Archivi e simulazioni
+            Partite e scrutini
           </span>
         </Link>
-        <nav aria-label="Sezioni" className="flex flex-wrap items-center justify-end gap-1">
+        <nav aria-label="Sezioni" className="flex max-w-full flex-nowrap items-center justify-end gap-1 overflow-x-auto">
           {LINKS.map((link) => (
             <Link
               key={link.href}
               href={link.href}
-              className="rounded-md px-2 py-1.5 text-sm font-medium text-[var(--foreground)] hover:bg-white/10 sm:px-3"
+              className="shrink-0 rounded-md px-2 py-1.5 text-sm font-medium text-[var(--foreground)] hover:bg-white/10 sm:px-3"
             >
               {link.label}
             </Link>
