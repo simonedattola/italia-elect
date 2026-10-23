@@ -1,13 +1,7 @@
 import type { Metadata } from "next";
-import { Cormorant_Garamond, Source_Sans_3 } from "next/font/google";
+import { Source_Sans_3 } from "next/font/google";
 import { Providers } from "@/components/providers";
 import "./globals.css";
-
-const display = Cormorant_Garamond({
-  variable: "--font-display",
-  subsets: ["latin"],
-  weight: ["500", "600", "700"],
-});
 
 const body = Source_Sans_3({
   variable: "--font-body",
@@ -15,27 +9,32 @@ const body = Source_Sans_3({
   weight: ["400", "500", "600", "700"],
 });
 
+const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+
 export const metadata: Metadata = {
+  metadataBase: new URL(appUrl),
   title: {
-    default: "Italia Elect Game — Simulazione politica",
-    template: "%s · Italia Elect Game",
+    default: "Italia Elect — Archivi e simulazioni elettorali",
+    template: "%s · Italia Elect",
   },
   description:
-    "Gioco politico italiano: multiplayer, single player e sfida vs computer con simulazione realistica.",
+    "Archivio degli scrutini italiani e simulatore con seggi, Monte Carlo e intervalli. Il gioco resta una partita a parte.",
   keywords: [
     "elezioni italiane",
     "simulatore elettorale",
-    "politica italiana",
-    "Monte Carlo",
+    "Rosatellum",
+    "archivio Eligendo",
     "Italia Elect",
   ],
   openGraph: {
     title: "Italia Elect",
     description:
-      "Simula il risultato di un'elezione nazionale italiana con un modello statistico trasparente.",
+      "Scrutini pubblici dal dopoguerra e scenari elettorali con intervalli, senza inventare i numeri che mancano.",
     locale: "it_IT",
     type: "website",
+    siteName: "Italia Elect",
   },
+  robots: { index: true, follow: true },
 };
 
 export default function RootLayout({
@@ -45,10 +44,25 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="it">
-      <body className={`${display.variable} ${body.variable} antialiased`}>
-        <Providers>
-          <main className="min-h-screen">{children}</main>
-        </Providers>
+      <head>
+        <link rel="stylesheet" href="https://api.fontshare.com/v2/css?f[]=clash-display@500,600,700&f[]=satoshi@400,500,700&display=swap" />
+      </head>
+      <body className={`${body.variable} antialiased`}>
+        <Providers>{children}</Providers>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "WebApplication",
+              name: "Italia Elect",
+              inLanguage: "it",
+              applicationCategory: "EducationalApplication",
+              url: appUrl,
+              creator: { "@type": "Organization", name: "Vexa Studio", url: "https://vexastudio.it" },
+            }),
+          }}
+        />
       </body>
     </html>
   );

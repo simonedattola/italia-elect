@@ -1,22 +1,23 @@
 @import "tailwindcss";
 
 :root {
-  color-scheme: light;
-  --background: #f4f6fa;
-  --foreground: #0f172a;
-  --card: #ffffff;
-  --surface: #eef2f7;
-  --surface-2: #e2e8f0;
-  --border: #c5d0de;
-  --border-strong: #94a3b8;
-  --muted: #475569;
-  --it-blue: #003399;
-  --it-blue-dark: #002266;
-  --it-red: #c8102e;
-  --it-red-soft: #e8b4bc;
-  --it-green: #009246;
-  --accent-ai: #5b4fc7;
-  --chaos: #b45309;
+  color-scheme: dark;
+  --background: #091627;
+  --foreground: #f4f6f8;
+  --card: #12151a;
+  --surface: #0b121e;
+  --surface-2: #1a1f2b;
+  --border: #243044;
+  --border-strong: #3d4f68;
+  --muted: #8a9099;
+  --it-blue: #0166fe;
+  --it-blue-dark: #0057d9;
+  --it-red: #ff2357;
+  --it-red-soft: #3a2430;
+  --it-green: #3dd68c;
+  --accent-ai: #2563eb;
+  --chaos: #ede6da;
+  --font-display: "Clash Display", "Source Sans 3", sans-serif;
 }
 
 .experiment-root {
@@ -141,18 +142,64 @@ html {
   scroll-behavior: smooth;
 }
 
+.skip-link {
+  position: absolute;
+  left: 1rem;
+  top: -4rem;
+  z-index: 60;
+  border-radius: 0.5rem;
+  background: var(--it-blue);
+  color: #fff;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.skip-link:focus {
+  top: 0.75rem;
+}
+
+.site-shell {
+  background:
+    radial-gradient(ellipse 80% 40% at 10% -10%, rgba(1, 102, 254, 0.16), transparent 55%),
+    var(--background);
+}
+
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: var(--font-body), "Segoe UI", sans-serif;
+  font-family: "Satoshi", var(--font-body), sans-serif;
   min-height: 100vh;
+}
+
+.home-entry {
+  background:
+    radial-gradient(ellipse 80% 50% at 100% 0%, rgba(1, 102, 254, 0.16), transparent 50%),
+    #091627;
+  color: white;
+}
+
+.mode-card {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  transition: border-color 0.2s, transform 0.2s, background 0.2s;
+}
+
+.mode-card:hover {
+  border-color: rgba(1, 102, 254, 0.8);
+  background: rgba(1, 102, 254, 0.08);
+}
+
+.night-screen {
+  background:
+    radial-gradient(ellipse at center, rgba(1, 102, 254, 0.16), transparent 60%),
+    #070d16;
 }
 
 .hero-atmosphere {
   background:
-    radial-gradient(ellipse 80% 50% at 20% -10%, rgba(0, 51, 153, 0.1), transparent 55%),
-    radial-gradient(ellipse 60% 40% at 90% 10%, rgba(200, 16, 46, 0.08), transparent 50%),
-    linear-gradient(180deg, var(--background) 0%, var(--surface) 100%);
+    radial-gradient(ellipse 70% 50% at 0% 0%, rgba(1, 102, 254, 0.18), transparent 60%),
+    linear-gradient(180deg, #0b121e 0%, var(--background) 100%);
 }
 
 .italy-stripe {

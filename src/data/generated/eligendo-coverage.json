@@ -1,0 +1,40 @@
+{
+  "missingRegions": [
+    "Friuli-Venezia Giulia",
+    "Sardegna",
+    "Trentino-Alto Adige",
+    "Valle d'Aosta"
+  ],
+  "missingCities": [
+    "Agrigento",
+    "Aosta",
+    "Bolzano",
+    "Caltanissetta",
+    "Catania",
+    "Enna",
+    "Gorizia",
+    "Messina",
+    "Palermo",
+    "Pordenone",
+    "Ragusa",
+    "Siracusa",
+    "Trapani",
+    "Trento",
+    "Trieste",
+    "Udine"
+  ],
+  "downloadErrors": [],
+  "parseErrors": [
+    {
+      "path": "europee/europee-20240609.zip",
+      "error": "nessuna lista"
+    },
+    {
+      "path": "referendum/referendum-20260322.zip",
+      "error": "nessun quesito"
+    }
+  ],
+  "questionCount": 83,
+  "cityCount": 93,
+  "regionCount": 16
+}

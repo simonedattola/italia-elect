@@ -7,7 +7,13 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "test:game": "tsx scripts/test-game.ts"
+    "test:game": "tsx scripts/test-game.ts",
+    "test": "node --import tsx --test src/lib/electoral/rosatellum.test.ts src/lib/data/catalog.test.ts src/lib/scenarios/apply.test.ts src/lib/model/currentPolls.test.ts src/lib/model/backtest.test.ts",
+    "data:historical": "python3 scripts/ingest/eligendo_historical.py",
+    "data:backtest": "python3 scripts/ingest/fetch-backtest-polls.py",
+    "data:polls": "python3 scripts/ingest/fetch-wikipedia-polls.py",
+    "data:ingest": "tsx scripts/ingest/build-catalog.ts",
+    "data:map": "python3 scripts/ingest/build-region-map.py"
   },
   "dependencies": {
     "@ai-sdk/openai": "^4.0.29",

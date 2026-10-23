@@ -98,6 +98,12 @@ export interface CandidateGameProfile {
   recognitionNote?: string;
   vicePresidentEffect: number;
   expectedSwingPts: number;
+  coherence?: number;
+  deceased?: boolean;
+  legalNote?: string;
+  figureExplanation?: string;
+  electoralCap?: number;
+  opponentMobilization?: number;
 }
 
 export interface GameSimulationOptions {

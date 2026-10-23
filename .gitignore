@@ -47,6 +47,10 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
+__pycache__/
+*.pyc
+
 /src/generated/prisma
 /src/data/agents/latest-sample.json
 /src/data/daily/
+/data/raw/

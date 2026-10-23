@@ -1,10 +1,10 @@
 /**
  * Baseline semplificata per il gioco — usa sondaggi incorporati senza stack realtime.
  */
-import { aggregatePolls, EMBEDDED_POLLS } from "@/lib/intelligence/polls";
+import { currentPollAggregate } from "@/lib/model/currentScenario";
 
 export function getGameBaseline(): Record<string, number> {
-  return { ...aggregatePolls(EMBEDDED_POLLS).shares };
+  return { ...currentPollAggregate().shares };
 }
 
 export function getGamePollShares(): Record<string, number> {
