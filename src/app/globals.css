@@ -141,6 +141,29 @@ html {
   scroll-behavior: smooth;
 }
 
+.skip-link {
+  position: absolute;
+  left: 1rem;
+  top: -4rem;
+  z-index: 60;
+  border-radius: 0.5rem;
+  background: var(--it-blue);
+  color: #fff;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.skip-link:focus {
+  top: 0.75rem;
+}
+
+.site-shell {
+  background:
+    radial-gradient(ellipse 70% 40% at 0% 0%, rgba(0, 146, 70, 0.05), transparent 50%),
+    var(--background);
+}
+
 body {
   background: var(--background);
   color: var(--foreground);

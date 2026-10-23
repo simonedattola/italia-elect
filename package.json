@@ -7,7 +7,10 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "test:game": "tsx scripts/test-game.ts"
+    "test:game": "tsx scripts/test-game.ts",
+    "test": "node --import tsx --test src/lib/electoral/rosatellum.test.ts src/lib/data/catalog.test.ts",
+    "data:ingest": "tsx scripts/ingest/build-catalog.ts",
+    "data:map": "python3 scripts/ingest/build-region-map.py"
   },
   "dependencies": {
     "@ai-sdk/openai": "^4.0.29",

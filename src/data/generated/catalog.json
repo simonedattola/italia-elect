@@ -1,0 +1,1408 @@
+{
+  "generatedAt": "2026-10-23T15:03:26.053Z",
+  "elections": [
+    {
+      "id": "costituente-1946",
+      "level": "nazionali",
+      "chamber": "costituente",
+      "date": "1946-06-02",
+      "year": 1946,
+      "title": "Assemblea Costituente 1946",
+      "territory": "Italia",
+      "turnout": 89.08,
+      "listCount": 17,
+      "hasVotes": false,
+      "hasGeography": false,
+      "topLists": [
+        {
+          "id": "dc",
+          "name": "DC",
+          "percentage": 35.21
+        },
+        {
+          "id": "psiup",
+          "name": "PSIUP",
+          "percentage": 20.68
+        },
+        {
+          "id": "pci",
+          "name": "PCI",
+          "percentage": 18.93
+        },
+        {
+          "id": "un-democ-nazionale",
+          "name": "UN.DEMOC.NAZIONALE",
+          "percentage": 6.78
+        },
+        {
+          "id": "fr-uomo-qualunque",
+          "name": "FR.UOMO QUALUNQUE",
+          "percentage": 5.27
+        },
+        {
+          "id": "pri",
+          "name": "PRI",
+          "percentage": 4.36
+        }
+      ],
+      "coverageNotes": [
+        "Percentuali e seggi dalla compilazione Zenodo dei dati Eligendo (DOI 10.5281/zenodo.13864339). I conteggi assoluti di quel CSV sono corrotti (numeri letti come orari) e non sono stati importati."
+      ],
+      "source": {
+        "provider": "Compilazione Zenodo di dati Eligendo (Isidori), DOI 10.5281/zenodo.13864339",
+        "url": "https://zenodo.org/records/13864339",
+        "retrievedAt": "2026-10-23",
+        "notes": "Percentuali e seggi. Conteggi assoluti scartati perché corrotti nel CSV."
+      }
+    },
+    {
+      "id": "politiche-camera-1948-bollettino",
+      "level": "nazionali",
+      "chamber": "camera",
+      "date": "1948-04-18",
+      "year": 1948,
+      "title": "Politiche 1948 — Camera, bollettino nazionale",
+      "territory": "Italia",
+      "turnout": 92.23,
+      "listCount": 34,
+      "hasVotes": false,
+      "hasGeography": false,
+      "topLists": [
+        {
+          "id": "dc",
+          "name": "DC",
+          "percentage": 48.51
+        },
+        {
+          "id": "fr-democr-popolare",
+          "name": "FR.DEMOCR.POPOLARE",
+          "percentage": 30.98
+        },
+        {
+          "id": "unita-socialista",
+          "name": "UNITA' SOCIALISTA",
+          "percentage": 7.07
+        },
+        {
+          "id": "blocco-nazionale",
+          "name": "BLOCCO NAZIONALE",
+          "percentage": 3.82
+        },
+        {
+          "id": "p-naz-mon-all-d-lav",
+          "name": "P.NAZ.MON.ALL.D.LAV.",
+          "percentage": 2.78
+        },
+        {
+          "id": "pri",
+          "name": "PRI",
+          "percentage": 2.48
+        }
+      ],
+      "coverageNotes": [
+        "Percentuali e seggi dalla compilazione Zenodo dei dati Eligendo (DOI 10.5281/zenodo.13864339). I conteggi assoluti di quel CSV sono corrotti (numeri letti come orari) e non sono stati importati."
+      ],
+      "source": {
+        "provider": "Compilazione Zenodo di dati Eligendo (Isidori), DOI 10.5281/zenodo.13864339",
+        "url": "https://zenodo.org/records/13864339",
+        "retrievedAt": "2026-10-23",
+        "notes": "Percentuali e seggi. Conteggi assoluti scartati perché corrotti nel CSV."
+      }
+    },
+    {
+      "id": "politiche-camera-1953-bollettino",
+      "level": "nazionali",
+      "chamber": "camera",
+      "date": "1953-06-07",
+      "year": 1953,
+      "title": "Politiche 1953 — Camera, bollettino nazionale",
+      "territory": "Italia",
+      "turnout": 93.84,
+      "listCount": 28,
+      "hasVotes": false,
+      "hasGeography": false,
+      "topLists": [
+        {
+          "id": "dc",
+          "name": "DC",
+          "percentage": 40.1
+        },
+        {
+          "id": "pci",
+          "name": "PCI",
+          "percentage": 22.6
+        },
+        {
+          "id": "psi",
+          "name": "PSI",
+          "percentage": 12.7
+        },
+        {
+          "id": "p-naz-monarchico",
+          "name": "P.NAZ.MONARCHICO",
+          "percentage": 6.85
+        },
+        {
+          "id": "msi",
+          "name": "MSI",
+          "percentage": 5.84
+        },
+        {
+          "id": "psdi",
+          "name": "PSDI",
+          "percentage": 4.51
+        }
+      ],
+      "coverageNotes": [
+        "Percentuali e seggi dalla compilazione Zenodo dei dati Eligendo (DOI 10.5281/zenodo.13864339). I conteggi assoluti di quel CSV sono corrotti (numeri letti come orari) e non sono stati importati."
+      ],
+      "source": {
+        "provider": "Compilazione Zenodo di dati Eligendo (Isidori), DOI 10.5281/zenodo.13864339",
+        "url": "https://zenodo.org/records/13864339",
+        "retrievedAt": "2026-10-23",
+        "notes": "Percentuali e seggi. Conteggi assoluti scartati perché corrotti nel CSV."
+      }
+    },
+    {
+      "id": "politiche-camera-1958-bollettino",
+      "level": "nazionali",
+      "chamber": "camera",
+      "date": "1958-05-25",
+      "year": 1958,
+      "title": "Politiche 1958 — Camera, bollettino nazionale",
+      "territory": "Italia",
+      "turnout": 93.83,
+      "listCount": 25,
+      "hasVotes": false,
+      "hasGeography": false,
+      "topLists": [
+        {
+          "id": "dc",
+          "name": "DC",
+          "percentage": 42.35
+        },
+        {
+          "id": "pci",
+          "name": "PCI",
+          "percentage": 22.68
+        },
+        {
+          "id": "psi",
+          "name": "PSI",
+          "percentage": 14.23
+        },
+        {
+          "id": "msi",
+          "name": "MSI",
+          "percentage": 4.76
+        },
+        {
+          "id": "psdi",
+          "name": "PSDI",
+          "percentage": 4.55
+        },
+        {
+          "id": "pli",
+          "name": "PLI",
+          "percentage": 3.54
+        }
+      ],
+      "coverageNotes": [
+        "Percentuali e seggi dalla compilazione Zenodo dei dati Eligendo (DOI 10.5281/zenodo.13864339). I conteggi assoluti di quel CSV sono corrotti (numeri letti come orari) e non sono stati importati."
+      ],
+      "source": {
+        "provider": "Compilazione Zenodo di dati Eligendo (Isidori), DOI 10.5281/zenodo.13864339",
+        "url": "https://zenodo.org/records/13864339",
+        "retrievedAt": "2026-10-23",
+        "notes": "Percentuali e seggi. Conteggi assoluti scartati perché corrotti nel CSV."
+      }
+    },
+    {
+      "id": "politiche-camera-1963-bollettino",
+      "level": "nazionali",
+      "chamber": "camera",
+      "date": "1963-04-28",
+      "year": 1963,
+      "title": "Politiche 1963 — Camera, bollettino nazionale",
+      "territory": "Italia",
+      "turnout": 92.89,
+      "listCount": 22,
+      "hasVotes": false,
+      "hasGeography": false,
+      "topLists": [
+        {
+          "id": "dc",
+          "name": "DC",
+          "percentage": 38.28
+        },
+        {
+          "id": "pci",
+          "name": "PCI",
+          "percentage": 25.26
+        },
+        {
+          "id": "psi",
+          "name": "PSI",
+          "percentage": 13.84
+        },
+        {
+          "id": "pli",
+          "name": "PLI",
+          "percentage": 6.97
+        },
+        {
+          "id": "psdi",
+          "name": "PSDI",
+          "percentage": 6.1
+        },
+        {
+          "id": "msi",
+          "name": "MSI",
+          "percentage": 5.11
+        }
+      ],
+      "coverageNotes": [
+        "Percentuali e seggi dalla compilazione Zenodo dei dati Eligendo (DOI 10.5281/zenodo.13864339). I conteggi assoluti di quel CSV sono corrotti (numeri letti come orari) e non sono stati importati."
+      ],
+      "source": {
+        "provider": "Compilazione Zenodo di dati Eligendo (Isidori), DOI 10.5281/zenodo.13864339",
+        "url": "https://zenodo.org/records/13864339",
+        "retrievedAt": "2026-10-23",
+        "notes": "Percentuali e seggi. Conteggi assoluti scartati perché corrotti nel CSV."
+      }
+    },
+    {
+      "id": "politiche-camera-1968-bollettino",
+      "level": "nazionali",
+      "chamber": "camera",
+      "date": "1968-05-19",
+      "year": 1968,
+      "title": "Politiche 1968 — Camera, bollettino nazionale",
+      "territory": "Italia",
+      "turnout": 92.79,
+      "listCount": 29,
+      "hasVotes": false,
+      "hasGeography": false,
+      "topLists": [
+        {
+          "id": "dc",
+          "name": "DC",
+          "percentage": 39.12
+        },
+        {
+          "id": "pci",
+          "name": "PCI",
+          "percentage": 26.9
+        },
+        {
+          "id": "psu",
+          "name": "PSU",
+          "percentage": 14.48
+        },
+        {
+          "id": "pli",
+          "name": "PLI",
+          "percentage": 5.82
+        },
+        {
+          "id": "psiup",
+          "name": "PSIUP",
+          "percentage": 4.45
+        },
+        {
+          "id": "msi",
+          "name": "MSI",
+          "percentage": 4.45
+        }
+      ],
+      "coverageNotes": [
+        "Percentuali e seggi dalla compilazione Zenodo dei dati Eligendo (DOI 10.5281/zenodo.13864339). I conteggi assoluti di quel CSV sono corrotti (numeri letti come orari) e non sono stati importati."
+      ],
+      "source": {
+        "provider": "Compilazione Zenodo di dati Eligendo (Isidori), DOI 10.5281/zenodo.13864339",
+        "url": "https://zenodo.org/records/13864339",
+        "retrievedAt": "2026-10-23",
+        "notes": "Percentuali e seggi. Conteggi assoluti scartati perché corrotti nel CSV."
+      }
+    },
+    {
+      "id": "politiche-camera-1972-bollettino",
+      "level": "nazionali",
+      "chamber": "camera",
+      "date": "1972-05-07",
+      "year": 1972,
+      "title": "Politiche 1972 — Camera, bollettino nazionale",
+      "territory": "Italia",
+      "turnout": 93.19,
+      "listCount": 23,
+      "hasVotes": false,
+      "hasGeography": false,
+      "topLists": [
+        {
+          "id": "dc",
+          "name": "DC",
+          "percentage": 38.66
+        },
+        {
+          "id": "pci",
+          "name": "PCI",
+          "percentage": 27.15
+        },
+        {
+          "id": "psi",
+          "name": "PSI",
+          "percentage": 9.61
+        },
+        {
+          "id": "msi",
+          "name": "MSI",
+          "percentage": 8.67
+        },
+        {
+          "id": "psdi",
+          "name": "PSDI",
+          "percentage": 5.14
+        },
+        {
+          "id": "pli",
+          "name": "PLI",
+          "percentage": 3.89
+        }
+      ],
+      "coverageNotes": [
+        "Percentuali e seggi dalla compilazione Zenodo dei dati Eligendo (DOI 10.5281/zenodo.13864339). I conteggi assoluti di quel CSV sono corrotti (numeri letti come orari) e non sono stati importati."
+      ],
+      "source": {
+        "provider": "Compilazione Zenodo di dati Eligendo (Isidori), DOI 10.5281/zenodo.13864339",
+        "url": "https://zenodo.org/records/13864339",
+        "retrievedAt": "2026-10-23",
+        "notes": "Percentuali e seggi. Conteggi assoluti scartati perché corrotti nel CSV."
+      }
+    },
+    {
+      "id": "politiche-camera-1976-bollettino",
+      "level": "nazionali",
+      "chamber": "camera",
+      "date": "1976-06-20",
+      "year": 1976,
+      "title": "Politiche 1976 — Camera, bollettino nazionale",
+      "territory": "Italia",
+      "turnout": 93.39,
+      "listCount": 21,
+      "hasVotes": false,
+      "hasGeography": false,
+      "topLists": [
+        {
+          "id": "dc",
+          "name": "DC",
+          "percentage": 38.71
+        },
+        {
+          "id": "pci",
+          "name": "PCI",
+          "percentage": 34.37
+        },
+        {
+          "id": "psi",
+          "name": "PSI",
+          "percentage": 9.64
+        },
+        {
+          "id": "msi-dn",
+          "name": "MSI-DN",
+          "percentage": 6.1
+        },
+        {
+          "id": "psdi",
+          "name": "PSDI",
+          "percentage": 3.38
+        },
+        {
+          "id": "pri",
+          "name": "PRI",
+          "percentage": 3.09
+        }
+      ],
+      "coverageNotes": [
+        "Percentuali e seggi dalla compilazione Zenodo dei dati Eligendo (DOI 10.5281/zenodo.13864339). I conteggi assoluti di quel CSV sono corrotti (numeri letti come orari) e non sono stati importati."
+      ],
+      "source": {
+        "provider": "Compilazione Zenodo di dati Eligendo (Isidori), DOI 10.5281/zenodo.13864339",
+        "url": "https://zenodo.org/records/13864339",
+        "retrievedAt": "2026-10-23",
+        "notes": "Percentuali e seggi. Conteggi assoluti scartati perché corrotti nel CSV."
+      }
+    },
+    {
+      "id": "politiche-camera-1979-bollettino",
+      "level": "nazionali",
+      "chamber": "camera",
+      "date": "1979-06-03",
+      "year": 1979,
+      "title": "Politiche 1979 — Camera, bollettino nazionale",
+      "territory": "Italia",
+      "turnout": 90.62,
+      "listCount": 31,
+      "hasVotes": false,
+      "hasGeography": false,
+      "topLists": [
+        {
+          "id": "dc",
+          "name": "DC",
+          "percentage": 38.3
+        },
+        {
+          "id": "pci",
+          "name": "PCI",
+          "percentage": 30.38
+        },
+        {
+          "id": "psi",
+          "name": "PSI",
+          "percentage": 9.81
+        },
+        {
+          "id": "msi-dn",
+          "name": "MSI-DN",
+          "percentage": 5.26
+        },
+        {
+          "id": "psdi",
+          "name": "PSDI",
+          "percentage": 3.84
+        },
+        {
+          "id": "p-rad",
+          "name": "P.RAD",
+          "percentage": 3.45
+        }
+      ],
+      "coverageNotes": [
+        "Percentuali e seggi dalla compilazione Zenodo dei dati Eligendo (DOI 10.5281/zenodo.13864339). I conteggi assoluti di quel CSV sono corrotti (numeri letti come orari) e non sono stati importati."
+      ],
+      "source": {
+        "provider": "Compilazione Zenodo di dati Eligendo (Isidori), DOI 10.5281/zenodo.13864339",
+        "url": "https://zenodo.org/records/13864339",
+        "retrievedAt": "2026-10-23",
+        "notes": "Percentuali e seggi. Conteggi assoluti scartati perché corrotti nel CSV."
+      }
+    },
+    {
+      "id": "politiche-camera-1983-bollettino",
+      "level": "nazionali",
+      "chamber": "camera",
+      "date": "1983-06-26",
+      "year": 1983,
+      "title": "Politiche 1983 — Camera, bollettino nazionale",
+      "territory": "Italia",
+      "turnout": 88.01,
+      "listCount": 34,
+      "hasVotes": false,
+      "hasGeography": false,
+      "topLists": [
+        {
+          "id": "dc",
+          "name": "DC",
+          "percentage": 32.93
+        },
+        {
+          "id": "pci",
+          "name": "PCI",
+          "percentage": 29.89
+        },
+        {
+          "id": "psi",
+          "name": "PSI",
+          "percentage": 11.44
+        },
+        {
+          "id": "msi-dn",
+          "name": "MSI-DN",
+          "percentage": 6.81
+        },
+        {
+          "id": "pri",
+          "name": "PRI",
+          "percentage": 5.08
+        },
+        {
+          "id": "psdi",
+          "name": "PSDI",
+          "percentage": 4.09
+        }
+      ],
+      "coverageNotes": [
+        "Percentuali e seggi dalla compilazione Zenodo dei dati Eligendo (DOI 10.5281/zenodo.13864339). I conteggi assoluti di quel CSV sono corrotti (numeri letti come orari) e non sono stati importati."
+      ],
+      "source": {
+        "provider": "Compilazione Zenodo di dati Eligendo (Isidori), DOI 10.5281/zenodo.13864339",
+        "url": "https://zenodo.org/records/13864339",
+        "retrievedAt": "2026-10-23",
+        "notes": "Percentuali e seggi. Conteggi assoluti scartati perché corrotti nel CSV."
+      }
+    },
+    {
+      "id": "politiche-camera-1987-bollettino",
+      "level": "nazionali",
+      "chamber": "camera",
+      "date": "1987-06-14",
+      "year": 1987,
+      "title": "Politiche 1987 — Camera, bollettino nazionale",
+      "territory": "Italia",
+      "turnout": 88.83,
+      "listCount": 36,
+      "hasVotes": false,
+      "hasGeography": false,
+      "topLists": [
+        {
+          "id": "dc",
+          "name": "DC",
+          "percentage": 34.31
+        },
+        {
+          "id": "pci",
+          "name": "PCI",
+          "percentage": 26.58
+        },
+        {
+          "id": "psi",
+          "name": "PSI",
+          "percentage": 14.26
+        },
+        {
+          "id": "msi-dn",
+          "name": "MSI-DN",
+          "percentage": 5.91
+        },
+        {
+          "id": "pri",
+          "name": "PRI",
+          "percentage": 3.7
+        },
+        {
+          "id": "psdi",
+          "name": "PSDI",
+          "percentage": 2.96
+        }
+      ],
+      "coverageNotes": [
+        "Percentuali e seggi dalla compilazione Zenodo dei dati Eligendo (DOI 10.5281/zenodo.13864339). I conteggi assoluti di quel CSV sono corrotti (numeri letti come orari) e non sono stati importati."
+      ],
+      "source": {
+        "provider": "Compilazione Zenodo di dati Eligendo (Isidori), DOI 10.5281/zenodo.13864339",
+        "url": "https://zenodo.org/records/13864339",
+        "retrievedAt": "2026-10-23",
+        "notes": "Percentuali e seggi. Conteggi assoluti scartati perché corrotti nel CSV."
+      }
+    },
+    {
+      "id": "politiche-camera-1992-bollettino",
+      "level": "nazionali",
+      "chamber": "camera",
+      "date": "1992-04-05",
+      "year": 1992,
+      "title": "Politiche 1992 — Camera, bollettino nazionale",
+      "territory": "Italia",
+      "turnout": 87.35,
+      "listCount": 28,
+      "hasVotes": false,
+      "hasGeography": false,
+      "topLists": [
+        {
+          "id": "dc",
+          "name": "DC",
+          "percentage": 29.66
+        },
+        {
+          "id": "pds",
+          "name": "PDS",
+          "percentage": 16.11
+        },
+        {
+          "id": "psi",
+          "name": "PSI",
+          "percentage": 13.62
+        },
+        {
+          "id": "lega-lombarda",
+          "name": "LEGA LOMBARDA",
+          "percentage": 8.65
+        },
+        {
+          "id": "rifondazione-comunista",
+          "name": "RIFONDAZIONE COMUNISTA",
+          "percentage": 5.62
+        },
+        {
+          "id": "msi-dn",
+          "name": "MSI-DN",
+          "percentage": 5.37
+        }
+      ],
+      "coverageNotes": [
+        "Percentuali e seggi dalla compilazione Zenodo dei dati Eligendo (DOI 10.5281/zenodo.13864339). I conteggi assoluti di quel CSV sono corrotti (numeri letti come orari) e non sono stati importati."
+      ],
+      "source": {
+        "provider": "Compilazione Zenodo di dati Eligendo (Isidori), DOI 10.5281/zenodo.13864339",
+        "url": "https://zenodo.org/records/13864339",
+        "retrievedAt": "2026-10-23",
+        "notes": "Percentuali e seggi. Conteggi assoluti scartati perché corrotti nel CSV."
+      }
+    },
+    {
+      "id": "politiche-camera-1994-bollettino",
+      "level": "nazionali",
+      "chamber": "camera",
+      "date": "1994-03-27",
+      "year": 1994,
+      "title": "Politiche 1994 — Camera, bollettino nazionale",
+      "territory": "Italia",
+      "turnout": 86.31,
+      "listCount": 67,
+      "hasVotes": false,
+      "hasGeography": false,
+      "topLists": [
+        {
+          "id": "forza-italia",
+          "name": "FORZA ITALIA",
+          "percentage": 21.01
+        },
+        {
+          "id": "pds",
+          "name": "PDS",
+          "percentage": 20.36
+        },
+        {
+          "id": "alleanza-nazionale",
+          "name": "ALLEANZA NAZIONALE",
+          "percentage": 13.47
+        },
+        {
+          "id": "p-popolare-italiano",
+          "name": "P.POPOLARE ITALIANO",
+          "percentage": 11.07
+        },
+        {
+          "id": "lega-nord",
+          "name": "LEGA NORD",
+          "percentage": 8.36
+        },
+        {
+          "id": "rifondazione-comunista",
+          "name": "RIFONDAZIONE COMUNISTA",
+          "percentage": 6.05
+        }
+      ],
+      "coverageNotes": [
+        "Percentuali e seggi dalla compilazione Zenodo dei dati Eligendo (DOI 10.5281/zenodo.13864339). I conteggi assoluti di quel CSV sono corrotti (numeri letti come orari) e non sono stati importati.",
+        "Mattarellum: la colonna seggi del file somma a circa 155, cioè la quota proporzionale, non i seggi totali della lista."
+      ],
+      "source": {
+        "provider": "Compilazione Zenodo di dati Eligendo (Isidori), DOI 10.5281/zenodo.13864339",
+        "url": "https://zenodo.org/records/13864339",
+        "retrievedAt": "2026-10-23",
+        "notes": "Percentuali e seggi. Conteggi assoluti scartati perché corrotti nel CSV."
+      }
+    },
+    {
+      "id": "politiche-camera-1996-bollettino",
+      "level": "nazionali",
+      "chamber": "camera",
+      "date": "1996-04-21",
+      "year": 1996,
+      "title": "Politiche 1996 — Camera, bollettino nazionale",
+      "territory": "Italia",
+      "turnout": 82.88,
+      "listCount": 37,
+      "hasVotes": false,
+      "hasGeography": false,
+      "topLists": [
+        {
+          "id": "pds",
+          "name": "PDS",
+          "percentage": 21.06
+        },
+        {
+          "id": "forza-italia",
+          "name": "FORZA ITALIA",
+          "percentage": 20.57
+        },
+        {
+          "id": "alleanza-nazionale",
+          "name": "ALLEANZA NAZIONALE",
+          "percentage": 15.66
+        },
+        {
+          "id": "lega-nord",
+          "name": "LEGA NORD",
+          "percentage": 10.07
+        },
+        {
+          "id": "rifondazione-comunista",
+          "name": "RIFONDAZIONE COMUNISTA",
+          "percentage": 8.57
+        },
+        {
+          "id": "pop-svp-pri-ud-prodi",
+          "name": "POP-SVP-PRI-UD-PRODI",
+          "percentage": 6.81
+        }
+      ],
+      "coverageNotes": [
+        "Percentuali e seggi dalla compilazione Zenodo dei dati Eligendo (DOI 10.5281/zenodo.13864339). I conteggi assoluti di quel CSV sono corrotti (numeri letti come orari) e non sono stati importati.",
+        "Mattarellum: la colonna seggi del file somma a circa 155, cioè la quota proporzionale, non i seggi totali della lista."
+      ],
+      "source": {
+        "provider": "Compilazione Zenodo di dati Eligendo (Isidori), DOI 10.5281/zenodo.13864339",
+        "url": "https://zenodo.org/records/13864339",
+        "retrievedAt": "2026-10-23",
+        "notes": "Percentuali e seggi. Conteggi assoluti scartati perché corrotti nel CSV."
+      }
+    },
+    {
+      "id": "politiche-camera-2001-bollettino",
+      "level": "nazionali",
+      "chamber": "camera",
+      "date": "2001-05-13",
+      "year": 2001,
+      "title": "Politiche 2001 — Camera, bollettino nazionale",
+      "territory": "Italia",
+      "turnout": 81.38,
+      "listCount": 33,
+      "hasVotes": false,
+      "hasGeography": false,
+      "topLists": [
+        {
+          "id": "forza-italia",
+          "name": "FORZA ITALIA",
+          "percentage": 29.43
+        },
+        {
+          "id": "democratici-sinistra",
+          "name": "DEMOCRATICI SINISTRA",
+          "percentage": 16.57
+        },
+        {
+          "id": "la-margherita",
+          "name": "LA MARGHERITA",
+          "percentage": 14.52
+        },
+        {
+          "id": "alleanza-nazionale",
+          "name": "ALLEANZA NAZIONALE",
+          "percentage": 12.02
+        },
+        {
+          "id": "rifondazione-comunista",
+          "name": "RIFONDAZIONE COMUNISTA",
+          "percentage": 5.03
+        },
+        {
+          "id": "lega-nord",
+          "name": "LEGA NORD",
+          "percentage": 3.94
+        }
+      ],
+      "coverageNotes": [
+        "Percentuali e seggi dalla compilazione Zenodo dei dati Eligendo (DOI 10.5281/zenodo.13864339). I conteggi assoluti di quel CSV sono corrotti (numeri letti come orari) e non sono stati importati.",
+        "Mattarellum: la colonna seggi del file somma a circa 155, cioè la quota proporzionale, non i seggi totali della lista."
+      ],
+      "source": {
+        "provider": "Compilazione Zenodo di dati Eligendo (Isidori), DOI 10.5281/zenodo.13864339",
+        "url": "https://zenodo.org/records/13864339",
+        "retrievedAt": "2026-10-23",
+        "notes": "Percentuali e seggi. Conteggi assoluti scartati perché corrotti nel CSV."
+      }
+    },
+    {
+      "id": "politiche-camera-2006-bollettino",
+      "level": "nazionali",
+      "chamber": "camera",
+      "date": "2006-04-09",
+      "year": 2006,
+      "title": "Politiche 2006 — Camera, bollettino nazionale",
+      "territory": "Italia",
+      "turnout": 83.62,
+      "listCount": 36,
+      "hasVotes": false,
+      "hasGeography": false,
+      "topLists": [
+        {
+          "id": "l-ulivo",
+          "name": "L'ULIVO",
+          "percentage": 31.27
+        },
+        {
+          "id": "forza-italia",
+          "name": "FORZA ITALIA",
+          "percentage": 23.72
+        },
+        {
+          "id": "alleanza-nazionale",
+          "name": "ALLEANZA NAZIONALE",
+          "percentage": 12.34
+        },
+        {
+          "id": "unione-di-centro",
+          "name": "UNIONE DI CENTRO",
+          "percentage": 6.76
+        },
+        {
+          "id": "rifondazione-comunista",
+          "name": "RIFONDAZIONE COMUNISTA",
+          "percentage": 5.84
+        },
+        {
+          "id": "lega-nord",
+          "name": "LEGA NORD",
+          "percentage": 4.58
+        }
+      ],
+      "coverageNotes": [
+        "Percentuali e seggi dalla compilazione Zenodo dei dati Eligendo (DOI 10.5281/zenodo.13864339). I conteggi assoluti di quel CSV sono corrotti (numeri letti come orari) e non sono stati importati."
+      ],
+      "source": {
+        "provider": "Compilazione Zenodo di dati Eligendo (Isidori), DOI 10.5281/zenodo.13864339",
+        "url": "https://zenodo.org/records/13864339",
+        "retrievedAt": "2026-10-23",
+        "notes": "Percentuali e seggi. Conteggi assoluti scartati perché corrotti nel CSV."
+      }
+    },
+    {
+      "id": "politiche-camera-2008-bollettino",
+      "level": "nazionali",
+      "chamber": "camera",
+      "date": "2008-04-13",
+      "year": 2008,
+      "title": "Politiche 2008 — Camera, bollettino nazionale",
+      "territory": "Italia",
+      "turnout": 80.51,
+      "listCount": 29,
+      "hasVotes": false,
+      "hasGeography": false,
+      "topLists": [
+        {
+          "id": "il-popolo-della-liberta",
+          "name": "IL POPOLO DELLA LIBERTA'",
+          "percentage": 37.38
+        },
+        {
+          "id": "partito-democratico",
+          "name": "PARTITO DEMOCRATICO",
+          "percentage": 33.18
+        },
+        {
+          "id": "lega-nord",
+          "name": "LEGA NORD",
+          "percentage": 8.3
+        },
+        {
+          "id": "unione-di-centro",
+          "name": "UNIONE DI CENTRO",
+          "percentage": 5.62
+        },
+        {
+          "id": "di-pietro-italia-dei-valori",
+          "name": "DI PIETRO ITALIA DEI VALORI",
+          "percentage": 4.37
+        },
+        {
+          "id": "la-sinistra-l-arcobaleno",
+          "name": "LA SINISTRA L'ARCOBALENO",
+          "percentage": 3.08
+        }
+      ],
+      "coverageNotes": [
+        "Percentuali e seggi dalla compilazione Zenodo dei dati Eligendo (DOI 10.5281/zenodo.13864339). I conteggi assoluti di quel CSV sono corrotti (numeri letti come orari) e non sono stati importati."
+      ],
+      "source": {
+        "provider": "Compilazione Zenodo di dati Eligendo (Isidori), DOI 10.5281/zenodo.13864339",
+        "url": "https://zenodo.org/records/13864339",
+        "retrievedAt": "2026-10-23",
+        "notes": "Percentuali e seggi. Conteggi assoluti scartati perché corrotti nel CSV."
+      }
+    },
+    {
+      "id": "politiche-camera-2013-bollettino",
+      "level": "nazionali",
+      "chamber": "camera",
+      "date": "2013-02-24",
+      "year": 2013,
+      "title": "Politiche 2013 — Camera, bollettino nazionale",
+      "territory": "Italia",
+      "turnout": 75.2,
+      "listCount": 45,
+      "hasVotes": false,
+      "hasGeography": false,
+      "topLists": [
+        {
+          "id": "movimento-5-stelle-beppegrillo-it",
+          "name": "MOVIMENTO 5 STELLE BEPPEGRILLO.IT",
+          "percentage": 25.56
+        },
+        {
+          "id": "partito-democratico",
+          "name": "PARTITO DEMOCRATICO",
+          "percentage": 25.43
+        },
+        {
+          "id": "il-popolo-della-liberta",
+          "name": "IL POPOLO DELLA LIBERTA'",
+          "percentage": 21.56
+        },
+        {
+          "id": "scelta-civica-con-monti-per-l-italia",
+          "name": "SCELTA CIVICA CON MONTI PER L'ITALIA",
+          "percentage": 8.3
+        },
+        {
+          "id": "lega-nord",
+          "name": "LEGA NORD",
+          "percentage": 4.09
+        },
+        {
+          "id": "sinistra-ecologia-liberta",
+          "name": "SINISTRA ECOLOGIA LIBERTA'",
+          "percentage": 3.2
+        }
+      ],
+      "coverageNotes": [
+        "Percentuali e seggi dalla compilazione Zenodo dei dati Eligendo (DOI 10.5281/zenodo.13864339). I conteggi assoluti di quel CSV sono corrotti (numeri letti come orari) e non sono stati importati."
+      ],
+      "source": {
+        "provider": "Compilazione Zenodo di dati Eligendo (Isidori), DOI 10.5281/zenodo.13864339",
+        "url": "https://zenodo.org/records/13864339",
+        "retrievedAt": "2026-10-23",
+        "notes": "Percentuali e seggi. Conteggi assoluti scartati perché corrotti nel CSV."
+      }
+    },
+    {
+      "id": "politiche-camera-2018-bollettino",
+      "level": "nazionali",
+      "chamber": "camera",
+      "date": "2018-03-04",
+      "year": 2018,
+      "title": "Politiche 2018 — Camera, bollettino nazionale",
+      "territory": "Italia",
+      "turnout": 72.94,
+      "listCount": 26,
+      "hasVotes": false,
+      "hasGeography": false,
+      "topLists": [
+        {
+          "id": "movimento-5-stelle",
+          "name": "MOVIMENTO 5 STELLE",
+          "percentage": 32.68
+        },
+        {
+          "id": "partito-democratico",
+          "name": "PARTITO DEMOCRATICO",
+          "percentage": 18.76
+        },
+        {
+          "id": "lega",
+          "name": "LEGA",
+          "percentage": 17.35
+        },
+        {
+          "id": "forza-italia",
+          "name": "FORZA ITALIA",
+          "percentage": 14
+        },
+        {
+          "id": "fratelli-d-italia-con-giorgia-meloni",
+          "name": "FRATELLI D'ITALIA CON GIORGIA MELONI",
+          "percentage": 4.35
+        },
+        {
+          "id": "liberi-e-uguali",
+          "name": "LIBERI E UGUALI",
+          "percentage": 3.39
+        }
+      ],
+      "coverageNotes": [
+        "Percentuali e seggi dalla compilazione Zenodo dei dati Eligendo (DOI 10.5281/zenodo.13864339). I conteggi assoluti di quel CSV sono corrotti (numeri letti come orari) e non sono stati importati.",
+        "I seggi accanto a ciascuna lista sono la quota proporzionale. I seggi uninominali, nel file, sono aggregati per blocco e non per lista.",
+        "Una cella lista è illeggibile (#NAME?, tipico errore Excel). Il nome non è stato ricostruito, anche se la percentuale coincide con l'ordine di grandezza di una lista nota."
+      ],
+      "source": {
+        "provider": "Compilazione Zenodo di dati Eligendo (Isidori), DOI 10.5281/zenodo.13864339",
+        "url": "https://zenodo.org/records/13864339",
+        "retrievedAt": "2026-10-23",
+        "notes": "Percentuali e seggi. Conteggi assoluti scartati perché corrotti nel CSV."
+      }
+    },
+    {
+      "id": "politiche-camera-2022",
+      "level": "nazionali",
+      "chamber": "camera",
+      "date": "2022-09-25",
+      "year": 2022,
+      "title": "Politiche 2022 — Camera, dettaglio territoriale",
+      "territory": "Italia",
+      "turnout": 63.91,
+      "listCount": 23,
+      "hasVotes": true,
+      "hasGeography": true,
+      "topLists": [
+        {
+          "id": "fratelli-d-italia-con-giorgia-meloni",
+          "name": "FRATELLI D'ITALIA CON GIORGIA MELONI",
+          "percentage": 26.22
+        },
+        {
+          "id": "partito-democratico-italia-democratica-e-progressista",
+          "name": "PARTITO DEMOCRATICO - ITALIA DEMOCRATICA E PROGRESSISTA",
+          "percentage": 18.95
+        },
+        {
+          "id": "movimento-5-stelle",
+          "name": "MOVIMENTO 5 STELLE",
+          "percentage": 15.44
+        },
+        {
+          "id": "lega-per-salvini-premier",
+          "name": "LEGA PER SALVINI PREMIER",
+          "percentage": 8.84
+        },
+        {
+          "id": "forza-italia",
+          "name": "FORZA ITALIA",
+          "percentage": 8.2
+        },
+        {
+          "id": "azione-italia-viva-calenda",
+          "name": "AZIONE - ITALIA VIVA - CALENDA",
+          "percentage": 7.63
+        }
+      ],
+      "coverageNotes": [
+        "Somma del CSV per collegio uninominale e comune. Ogni lista è contata una volta per sezione territoriale: il file non ripete i candidati di lista.",
+        "Il totale può scostarsi di alcuni decimi dal bollettino nazionale (record politiche-camera-2022-bollettino) se il CSV non copre ogni comune. I collegi uninominali nel file Italia sono 146 su 147; la Valle d'Aosta è nel CSV separato.",
+        "Circoscrizione Estero assente.",
+        "Valle d'Aosta aggiunta dal CSV separato Camera_VAosta_LivComune. I suoi voti non entrano nel totale nazionale di questo record, perché le liste sono diverse e il collegio è fuori dal riparto proporzionale."
+      ],
+      "source": {
+        "provider": "Ministero dell'Interno — DAIT, open data Eligendo",
+        "url": "https://dait.interno.gov.it/documenti/opendata/catalogoagid/camera-2022-Italia-livcomune.csv",
+        "retrievedAt": "2026-10-23",
+        "notes": "Scrutini Camera 2022 per comune e collegio, più il CSV separato della Valle d'Aosta."
+      }
+    },
+    {
+      "id": "politiche-camera-2022-bollettino",
+      "level": "nazionali",
+      "chamber": "camera",
+      "date": "2022-09-25",
+      "year": 2022,
+      "title": "Politiche 2022 — Camera, bollettino nazionale",
+      "territory": "Italia",
+      "turnout": 63.91,
+      "listCount": 21,
+      "hasVotes": false,
+      "hasGeography": false,
+      "topLists": [
+        {
+          "id": "fratelli-d-italia-con-giorgia-meloni",
+          "name": "FRATELLI D'ITALIA CON GIORGIA MELONI",
+          "percentage": 25.98
+        },
+        {
+          "id": "partito-democratico-italia-democratica-e-progressista",
+          "name": "PARTITO DEMOCRATICO - ITALIA DEMOCRATICA E PROGRESSISTA",
+          "percentage": 19.04
+        },
+        {
+          "id": "movimento-5-stelle",
+          "name": "MOVIMENTO 5 STELLE",
+          "percentage": 15.43
+        },
+        {
+          "id": "lega-per-salvini-premier",
+          "name": "LEGA PER SALVINI PREMIER",
+          "percentage": 8.79
+        },
+        {
+          "id": "forza-italia",
+          "name": "FORZA ITALIA",
+          "percentage": 8.11
+        },
+        {
+          "id": "azione-italia-viva-calenda",
+          "name": "AZIONE - ITALIA VIVA - CALENDA",
+          "percentage": 7.78
+        }
+      ],
+      "coverageNotes": [
+        "Percentuali e seggi dalla compilazione Zenodo dei dati Eligendo (DOI 10.5281/zenodo.13864339). I conteggi assoluti di quel CSV sono corrotti (numeri letti come orari) e non sono stati importati.",
+        "I seggi accanto a ciascuna lista sono la quota proporzionale. I seggi uninominali, nel file, sono aggregati per blocco e non per lista.",
+        "Una cella lista è illeggibile (#NAME?, tipico errore Excel). Il nome non è stato ricostruito, anche se la percentuale coincide con l'ordine di grandezza di una lista nota.",
+        "Il CSV non ripete l'anno sull'intestazione di quest'ultimo blocco. È stato attribuito al 2022 perché segue il 2018 e riporta affluenza 63,91% con le liste delle politiche 2022."
+      ],
+      "source": {
+        "provider": "Compilazione Zenodo di dati Eligendo (Isidori), DOI 10.5281/zenodo.13864339",
+        "url": "https://zenodo.org/records/13864339",
+        "retrievedAt": "2026-10-23",
+        "notes": "Percentuali e seggi. Conteggi assoluti scartati perché corrotti nel CSV."
+      }
+    },
+    {
+      "id": "politiche-senato-2022",
+      "level": "nazionali",
+      "chamber": "senato",
+      "date": "2022-09-25",
+      "year": 2022,
+      "title": "Politiche 2022 — Senato, dettaglio territoriale",
+      "territory": "Italia",
+      "turnout": 63.87,
+      "listCount": 22,
+      "hasVotes": true,
+      "hasGeography": true,
+      "topLists": [
+        {
+          "id": "fratelli-d-italia-con-giorgia-meloni",
+          "name": "FRATELLI D'ITALIA CON GIORGIA MELONI",
+          "percentage": 26.22
+        },
+        {
+          "id": "partito-democratico-italia-democratica-e-progressista",
+          "name": "PARTITO DEMOCRATICO - ITALIA DEMOCRATICA E PROGRESSISTA",
+          "percentage": 18.87
+        },
+        {
+          "id": "movimento-5-stelle",
+          "name": "MOVIMENTO 5 STELLE",
+          "percentage": 15.52
+        },
+        {
+          "id": "lega-per-salvini-premier",
+          "name": "LEGA PER SALVINI PREMIER",
+          "percentage": 8.92
+        },
+        {
+          "id": "forza-italia",
+          "name": "FORZA ITALIA",
+          "percentage": 8.36
+        },
+        {
+          "id": "azione-italia-viva-calenda",
+          "name": "AZIONE - ITALIA VIVA - CALENDA",
+          "percentage": 7.58
+        }
+      ],
+      "coverageNotes": [
+        "Stesso metodo di aggregazione della Camera. L'elettorato del Senato è più stretto (età). Circoscrizione Estero assente.",
+        "Il CSV non contiene Trentino-Alto Adige né Valle d'Aosta: i loro seggi uninominali (6+1) non sono stimati. Il Trentino al Senato non ha quota proporzionale."
+      ],
+      "source": {
+        "provider": "Ministero dell'Interno — DAIT, open data Eligendo",
+        "url": "https://dait.interno.gov.it/documenti/opendata/catalogoagid/senato-2022-italia-livcomune.csv",
+        "retrievedAt": "2026-10-23",
+        "notes": "Scrutini Senato 2022 per comune e collegio."
+      }
+    },
+    {
+      "id": "regionali-2023-lazio-lombardia",
+      "level": "regionali",
+      "chamber": "consiglio",
+      "date": "2023-02-12",
+      "year": 2023,
+      "title": "Regionali 12 febbraio 2023 — Lombardia e Lazio",
+      "territory": "Lombardia e Lazio",
+      "turnout": null,
+      "listCount": 26,
+      "hasVotes": true,
+      "hasGeography": true,
+      "topLists": [
+        {
+          "id": "fratelli-d-italia-giorgia-meloni",
+          "name": "FRATELLI D'ITALIA - GIORGIA MELONI",
+          "percentage": 16.38
+        },
+        {
+          "id": "part-democr-lombardia-democratica-e-progressista-majorino",
+          "name": "PART.DEMOCR. LOMBARDIA DEMOCRATICA E PROGRESSISTA - MAJORINO",
+          "percentage": 14.2
+        },
+        {
+          "id": "fratelli-d-italia",
+          "name": "FRATELLI D'ITALIA",
+          "percentage": 11.76
+        },
+        {
+          "id": "lega-salvini-per-fontana-lega-lombarda",
+          "name": "LEGA - SALVINI PER FONTANA - LEGA LOMBARDA",
+          "percentage": 10.75
+        },
+        {
+          "id": "partito-democratico",
+          "name": "PARTITO DEMOCRATICO",
+          "percentage": 7.08
+        },
+        {
+          "id": "movimento-5-stelle",
+          "name": "MOVIMENTO 5 STELLE",
+          "percentage": 5.54
+        }
+      ],
+      "coverageNotes": [
+        "Il CSV aperto regionali-20230212 contiene solo Lazio e Lombardia. Non è un ciclo nazionale. Le percentuali nazionali di questo record sono la somma delle due regioni, non un voto italiano.",
+        "I voti di lista sono deduplicati per comune e lista: il file ripete la riga per ogni candidato."
+      ],
+      "source": {
+        "provider": "Ministero dell'Interno — DAIT, open data Eligendo",
+        "url": "https://dait.interno.gov.it/documenti/opendata/catalogoagid/regionali-20230212.csv",
+        "retrievedAt": "2026-10-23",
+        "notes": "Regionali del 12 febbraio 2023."
+      }
+    },
+    {
+      "id": "europee-2024",
+      "level": "europee",
+      "chamber": "parlamento-europeo",
+      "date": "2024-06-09",
+      "year": 2024,
+      "title": "Elezioni europee 2024 — Italia",
+      "territory": "Italia",
+      "turnout": 49.67,
+      "listCount": 15,
+      "hasVotes": true,
+      "hasGeography": true,
+      "topLists": [
+        {
+          "id": "fratelli-d-italia",
+          "name": "FRATELLI D'ITALIA",
+          "percentage": 28.82
+        },
+        {
+          "id": "partito-democratico",
+          "name": "PARTITO DEMOCRATICO",
+          "percentage": 24.08
+        },
+        {
+          "id": "movimento-5-stelle",
+          "name": "MOVIMENTO 5 STELLE",
+          "percentage": 9.99
+        },
+        {
+          "id": "forza-italia-noi-moderati-ppe",
+          "name": "FORZA ITALIA - NOI MODERATI - PPE",
+          "percentage": 9.61
+        },
+        {
+          "id": "lega-salvini-premier",
+          "name": "LEGA SALVINI PREMIER",
+          "percentage": 9
+        },
+        {
+          "id": "alleanza-verdi-e-sinistra",
+          "name": "ALLEANZA VERDI E SINISTRA",
+          "percentage": 6.71
+        }
+      ],
+      "coverageNotes": [
+        "Aggregazione del CSV europeo per comune. I voti di lista sono sommati una sola volta per comune e lista. Non include il voto fuori sede pubblicato in un file separato."
+      ],
+      "source": {
+        "provider": "Ministero dell'Interno — DAIT, open data Eligendo",
+        "url": "https://dait.interno.gov.it/documenti/opendata/catalogoagid/europee-2024-italia-livcomune.csv",
+        "retrievedAt": "2026-10-23",
+        "notes": "Europee 2024, livello comune."
+      }
+    },
+    {
+      "id": "comunali-2024-07-28",
+      "level": "comunali",
+      "chamber": "comunale",
+      "date": "2024-07-28",
+      "year": 2024,
+      "title": "Comunali nel CSV del 28 luglio 2024",
+      "territory": "Comuni presenti nel file",
+      "turnout": null,
+      "listCount": 1,
+      "hasVotes": true,
+      "hasGeography": true,
+      "topLists": [],
+      "coverageNotes": [
+        "Comuni distinti nel file: 1. Il catalogo aperto consultato il 2026-10-23 non pubblica l'intero storico comunale dal 1946: questo è il CSV comunali-20240728.",
+        "Il file comunali-20240609, nonostante il nome, contiene righe del 12 febbraio 2023 (Lazio e Lombardia) ed è stato scartato per non etichettarlo come comunale.",
+        "Codici CODTIPOELETTO incontrati: S:1. Il dizionario non è nel CSV; il codice S è riportato come annotazione, non come proclamazione verificata a parte.",
+        "I seggi di lista sono quelli del campo SEGGILISTA (massimo sulla riga, perché il file ripete i candidati)."
+      ],
+      "source": {
+        "provider": "Ministero dell'Interno — DAIT, open data Eligendo",
+        "url": "https://dait.interno.gov.it/documenti/opendata/catalogoagid/comunali-20240728.csv",
+        "retrievedAt": "2026-10-23",
+        "notes": "Comunali presenti nel CSV del 28 luglio 2024."
+      }
+    }
+  ],
+  "gaps": [
+    {
+      "level": "nazionali",
+      "detail": "Il bollettino compilato copre la Camera e la Costituente dal 1946 al 2022, non il Senato storico. I microdati con i voti ci sono per Camera e Senato 2022. I conteggi assoluti 1946–2018 non sono nel file utilizzabili e restano vuoti."
+    },
+    {
+      "level": "estero",
+      "detail": "La circoscrizione Estero (8 deputati e 4 senatori) non è nei CSV Italia scaricati. Il modello non le assegna seggi."
+    },
+    {
+      "level": "europee",
+      "detail": "Nel catalogo CSV del portale, alla data di scarico, c'è il dettaglio comunale delle europee 2024. Le europee 1979–2019 non sono in quel catalogo e non sono state ricostruite."
+    },
+    {
+      "level": "regionali",
+      "detail": "Il portale descrive i cicli regionali dal 1970, ma il CSV pubblicato nel catalogo machine-readable copre solo Lazio e Lombardia del 12 febbraio 2023. Il resto non è stato inventato."
+    },
+    {
+      "level": "comunali",
+      "detail": "È incluso il CSV comunali del 28 luglio 2024, non l'universo dei comuni dal 1946. Il file datato 20240609 nel catalogo è stato scartato perché le righe sono del 12 febbraio 2023."
+    },
+    {
+      "level": "sondaggi",
+      "detail": "Non esiste un feed ufficiale dei sondaggi. La serie nel repository è dimostrativa e resta spenta finché non si imposta POLLS_JSON_URL o non la si attiva a mano."
+    },
+    {
+      "level": "sentiment",
+      "detail": "Sentiment e rassegna non hanno una fonte di default. Senza SOCIAL_API_URL e NEWS_API_URL i fattori restano a zero."
+    }
+  ],
+  "sources": [
+    {
+      "provider": "Compilazione Zenodo di dati Eligendo (Isidori), DOI 10.5281/zenodo.13864339",
+      "url": "https://zenodo.org/records/13864339",
+      "retrievedAt": "2026-10-23",
+      "notes": "Percentuali e seggi. Conteggi assoluti scartati perché corrotti nel CSV."
+    },
+    {
+      "provider": "Ministero dell'Interno — DAIT, open data Eligendo",
+      "url": "https://dait.interno.gov.it/documenti/opendata/catalogoagid/camera-2022-Italia-livcomune.csv",
+      "retrievedAt": "2026-10-23",
+      "notes": "Scrutini Camera 2022 per comune e collegio, più il CSV separato della Valle d'Aosta."
+    },
+    {
+      "provider": "Ministero dell'Interno — DAIT, open data Eligendo",
+      "url": "https://dait.interno.gov.it/documenti/opendata/catalogoagid/senato-2022-italia-livcomune.csv",
+      "retrievedAt": "2026-10-23",
+      "notes": "Scrutini Senato 2022 per comune e collegio."
+    },
+    {
+      "provider": "Ministero dell'Interno — DAIT, open data Eligendo",
+      "url": "https://dait.interno.gov.it/documenti/opendata/catalogoagid/europee-2024-italia-livcomune.csv",
+      "retrievedAt": "2026-10-23",
+      "notes": "Europee 2024, livello comune."
+    },
+    {
+      "provider": "Ministero dell'Interno — DAIT, open data Eligendo",
+      "url": "https://dait.interno.gov.it/documenti/opendata/catalogoagid/regionali-20230212.csv",
+      "retrievedAt": "2026-10-23",
+      "notes": "Regionali del 12 febbraio 2023."
+    },
+    {
+      "provider": "Ministero dell'Interno — DAIT, open data Eligendo",
+      "url": "https://dait.interno.gov.it/documenti/opendata/catalogoagid/comunali-20240728.csv",
+      "retrievedAt": "2026-10-23",
+      "notes": "Comunali presenti nel CSV del 28 luglio 2024."
+    }
+  ]
+}
