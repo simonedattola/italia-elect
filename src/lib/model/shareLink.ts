@@ -23,6 +23,19 @@ export interface SharePayload {
   councilSeats?: number;
   regionalBonusSeats?: number;
   bonusCoalitionId?: string | null;
+  scenarios?: import("@/lib/scenarios/types").ScenarioInput[];
+  leader?: {
+    name: string;
+    listId: string;
+    swing?: number;
+    cap?: number;
+    backlash?: number;
+    note?: string;
+    legalNote?: string;
+    explanation?: string;
+  };
+  commonShockSd?: number;
+  collegioNoiseSd?: number;
 }
 
 function toBase64Url(bytes: Uint8Array): string {

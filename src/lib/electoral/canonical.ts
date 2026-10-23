@@ -93,6 +93,9 @@ export function canonicalListId(officialName: string): string {
   if (n.includes("PARTITO DEMOCRATICO")) return "partito-democratico";
   if (n.includes("5 STELLE")) return "movimento-5-stelle";
   if (n.includes("VERDI E SINISTRA")) return "avss";
+  if (n.includes("FUTURO NAZIONALE")) return "futuro-nazionale";
+  if (n.includes("ITALIA VIVA") && !n.includes("AZIONE")) return "italia-viva";
+  if (n.includes("AZIONE") && !n.includes("ITALIA VIVA")) return "azione";
   if (n.includes("AZIONE")) return "azione-iv";
   if (n.includes("+EUROPA") || n.startsWith("+ EUROPA")) return "piu-europa";
   if (n.includes("ITALEXIT")) return "italexit";
@@ -114,6 +117,9 @@ const COLORS: Record<string, string> = {
   "partito-democratico": "#E31C2B",
   "movimento-5-stelle": "#E0B400",
   avss: "#5FAF3A",
+  azione: "#F07A1A",
+  "italia-viva": "#C71585",
+  "futuro-nazionale": "#1A5276",
   "azione-iv": "#E85D04",
   "piu-europa": "#F2C200",
   italexit: "#6B7280",
@@ -138,6 +144,10 @@ const IDEOLOGY: Record<string, number> = {
   avss: -0.7,
   "partito-democratico": -0.35,
   "piu-europa": -0.05,
+  azione: 0.12,
+  "italia-viva": 0.05,
+  "futuro-nazionale": 0.78,
+  "sud-chiama-nord": 0.28,
   "azione-iv": 0.05,
   "movimento-5-stelle": -0.05,
   "impegno-civico": -0.15,

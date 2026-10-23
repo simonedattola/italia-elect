@@ -23,7 +23,7 @@ export default async function SharePage({ searchParams }: { searchParams: Promis
       {payload ? (
         <SimulatorApp key={s} initial={payload} />
       ) : (
-        <p className="rounded-2xl border border-[var(--border)] bg-white p-5 text-sm">
+        <p className="rounded-2xl border border-[var(--border)] bg-[var(--card)] p-5 text-sm">
           Questo link non contiene uno scenario leggibile.{" "}
           <Link className="font-semibold text-[var(--it-blue)] underline" href="/simulatore">
             Apri il simulatore

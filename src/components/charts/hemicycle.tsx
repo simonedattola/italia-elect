@@ -9,7 +9,7 @@ export function Hemicycle({ seats, label }: { seats: SeatDot[]; label: string })
   const positions = layout(dots.length);
   const total = dots.length;
   return (
-    <figure className="rounded-2xl border border-[var(--border)] bg-white p-4">
+    <figure className="rounded-2xl border border-[var(--border)] bg-[var(--card)] p-4">
       <figcaption className="mb-2 text-sm font-semibold">{label}</figcaption>
       <svg viewBox="0 0 320 168" role="img" aria-label={`${label}: ${total} seggi`} className="w-full">
         <title>{label}</title>

@@ -66,7 +66,7 @@ export default async function ElectionPage({ params }: { params: Promise<{ id: s
       </dl>
 
       <div className="mt-8 grid gap-6 lg:grid-cols-2">
-        <section className="rounded-2xl border border-[var(--border)] bg-white p-4">
+        <section className="rounded-2xl border border-[var(--border)] bg-[var(--card)] p-4">
           <h2 className="text-sm font-semibold">Liste</h2>
           <ul className="mt-3 space-y-2">
             {ranked.slice(0, 16).map((list) => (
@@ -88,7 +88,7 @@ export default async function ElectionPage({ params }: { params: Promise<{ id: s
             seats={seated.map((list) => ({ id: list.id, seats: list.seats ?? 0, color: colorForList(list.id) }))}
           />
         ) : (
-          <p className="rounded-2xl border border-[var(--border)] bg-white p-4 text-sm text-[var(--muted)]">
+          <p className="rounded-2xl border border-[var(--border)] bg-[var(--card)] p-4 text-sm text-[var(--muted)]">
             Questo file non pubblica un riparto di seggi utilizzabile. Le percentuali restano quelle della fonte.
           </p>
         )}
@@ -101,7 +101,7 @@ export default async function ElectionPage({ params }: { params: Promise<{ id: s
       ) : null}
 
       {places.length > 0 ? (
-        <section className="mt-8 overflow-x-auto rounded-2xl border border-[var(--border)] bg-white">
+        <section className="mt-8 overflow-x-auto rounded-2xl border border-[var(--border)] bg-[var(--card)]">
           <table className="w-full min-w-[640px] text-left text-sm">
             <caption className="px-4 py-3 text-left font-semibold">
               {record.level === "regionali" ? "Province nel file" : "Comuni nel file"}
@@ -152,7 +152,7 @@ export default async function ElectionPage({ params }: { params: Promise<{ id: s
 
 function Stat({ label, value }: { label: string; value: number | null }) {
   return (
-    <div className="rounded-2xl border border-[var(--border)] bg-white p-4">
+    <div className="rounded-2xl border border-[var(--border)] bg-[var(--card)] p-4">
       <dt className="text-xs uppercase tracking-wide text-[var(--muted)]">{label}</dt>
       <dd className="mt-1 font-[family-name:var(--font-display)] text-2xl">{value == null ? "—" : formatNumber(value)}</dd>
     </div>

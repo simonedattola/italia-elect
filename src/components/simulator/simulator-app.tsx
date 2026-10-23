@@ -3,6 +3,8 @@
 import { useEffect, useId, useMemo, useState } from "react";
 import Link from "next/link";
 import { ResultsPanel } from "@/components/simulator/results-panel";
+import { ScenarioControls } from "@/components/simulator/scenario-controls";
+import { assessLeader } from "@/lib/figures/assess";
 import { AFFINITY_QUESTIONS, scoreAffinity } from "@/lib/model/affinity";
 import { runSimulation } from "@/lib/model/engine";
 import { encodeShare, type SharePayload } from "@/lib/model/shareLink";
@@ -16,7 +18,6 @@ import {
 
 const LEVELS: { id: SharePayload["level"]; label: string }[] = [
   { id: "nazionali", label: "Politiche" },
-  { id: "europee", label: "Europee" },
   { id: "regionali", label: "Regionali" },
   { id: "comunali", label: "Comunali" },
 ];
@@ -45,7 +46,9 @@ interface ExternalContext {
 export function SimulatorApp({ initial }: { initial?: SharePayload }) {
   const [payload, setPayload] = useState<SharePayload>(() => initial ?? initialPayload());
   const [context, setContext] = useState<ExternalContext | null>(null);
-  const [pollNote, setPollNote] = useState("I sondaggi dimostrativi restano spenti finché non li attivi.");
+  const [pollNote, setPollNote] = useState("La baseline nazionale è la media dei sondaggi pubblicati.");
+  const [leaderName, setLeaderName] = useState("");
+  const [leaderList, setLeaderList] = useState("partito-democratico");
   const [municipals, setMunicipals] = useState<MunicipalOption[]>([]);
   const [answers, setAnswers] = useState<Record<string, number>>({});
   const [shareHref, setShareHref] = useState<string | null>(null);
@@ -119,7 +122,7 @@ export function SimulatorApp({ initial }: { initial?: SharePayload }) {
   return (
     <div className="grid gap-8 lg:grid-cols-[320px_1fr]">
       <form
-        className="space-y-5 rounded-2xl border border-[var(--border)] bg-white p-4"
+        className="space-y-5 rounded-2xl border border-[var(--border)] bg-[var(--card)] p-4"
         aria-busy={!ready}
         onSubmit={(event) => {
           event.preventDefault();
@@ -136,7 +139,7 @@ export function SimulatorApp({ initial }: { initial?: SharePayload }) {
                 type="button"
                 aria-pressed={payload.level === level.id}
                 onClick={() => setLevel(level.id)}
-                className={`rounded-lg border px-2 py-2 text-sm ${payload.level === level.id ? "border-[var(--it-blue)] bg-[#e7eefc]" : "border-[var(--border)]"}`}
+                className={`rounded-lg border px-2 py-2 text-sm ${payload.level === level.id ? "border-[var(--it-blue)] bg-[#0166fe]/20" : "border-[var(--border)]"}`}
               >
                 {level.label}
               </button>
@@ -144,11 +147,66 @@ export function SimulatorApp({ initial }: { initial?: SharePayload }) {
           </div>
         </fieldset>
 
+        <ScenarioControls
+          scenarios={payload.scenarios ?? []}
+          lists={lists.map((list) => ({ id: list.id, name: list.name }))}
+          onChange={(scenarios) => patch({ scenarios })}
+        />
+
+        <fieldset className="space-y-2">
+          <legend className="text-sm font-semibold">Leader</legend>
+          <p className="text-xs leading-relaxed text-[var(--muted)]">
+            Un nome dell&apos;archivio curato sposta la lista e spiega perché. Un nome sconosciuto resta senza effetto, salvo una lettura automatica se la chiave è configurata.
+          </p>
+          <input value={leaderName} onChange={(event) => setLeaderName(event.target.value)} placeholder="Nome e cognome" className="w-full rounded-md border border-[var(--border)] bg-[var(--card)] px-2 py-2 text-sm" />
+          <select value={leaderList} onChange={(event) => setLeaderList(event.target.value)} className="w-full rounded-md border border-[var(--border)] bg-[var(--card)] px-2 py-2 text-sm">
+            {lists.map((list) => (
+              <option key={list.id} value={list.id}>{list.name}</option>
+            ))}
+          </select>
+          <button
+            type="button"
+            className="rounded-md border border-[var(--border)] px-3 py-2 text-sm"
+            onClick={() => {
+              const list = lists.find((item) => item.id === leaderList);
+              const local = assessLeader(leaderName, leaderList, list?.ideology ?? 0);
+              const apply = (assessment: typeof local) =>
+                patch({
+                  leader: assessment.matched
+                    ? {
+                        name: assessment.displayName,
+                        listId: leaderList,
+                        swing: assessment.swing,
+                        cap: assessment.cap,
+                        backlash: assessment.backlash,
+                        explanation: assessment.explanation,
+                        legalNote: assessment.legalNote,
+                      }
+                    : undefined,
+                });
+              if (local.matched) {
+                apply(local);
+                return;
+              }
+              void fetch("/api/figure", {
+                method: "POST",
+                headers: { "content-type": "application/json" },
+                body: JSON.stringify({ name: leaderName, partyId: leaderList, ideology: list?.ideology ?? 0 }),
+              })
+                .then((response) => response.json())
+                .then((body) => apply(body))
+                .catch(() => apply(local));
+            }}
+          >
+            Applica il leader
+          </button>
+        </fieldset>
+
         {payload.level === "regionali" ? (
           <label className="block text-sm font-medium">
             Regione con dati 2023
             <select
-              className="mt-1 w-full rounded-md border border-[var(--border)] bg-white px-2 py-2"
+              className="mt-1 w-full rounded-md border border-[var(--border)] bg-[var(--card)] px-2 py-2"
               value={payload.region}
               onChange={(event) => {
                 const region = event.target.value;
@@ -229,9 +287,7 @@ export function SimulatorApp({ initial }: { initial?: SharePayload }) {
               }
             />
             <span>
-              {context?.polls?.quality && context.polls.quality !== "illustrative" && context.polls.quality !== "empty"
-                ? "Usa la media della fonte configurata. "
-                : "Usa la serie dimostrativa incorporata. "}
+              La baseline nazionale è già la media pubblicata. Questa casella la miscela con una fonte esterna, se configurata.
               {pollNote}
             </span>
           </label>
@@ -248,7 +304,7 @@ export function SimulatorApp({ initial }: { initial?: SharePayload }) {
                 <label key={list.id} className="grid grid-cols-[1fr_auto] items-center gap-2 text-sm">
                   <span className="truncate">{list.name}</span>
                   <select
-                    className="rounded-md border border-[var(--border)] bg-white px-1 py-1"
+                    className="rounded-md border border-[var(--border)] bg-[var(--card)] px-1 py-1"
                     value={payload.coalitions[list.id] ?? ""}
                     onChange={(event) =>
                       patch({
@@ -291,7 +347,7 @@ export function SimulatorApp({ initial }: { initial?: SharePayload }) {
               <label className="block text-sm font-medium">
                 Coalizione che riceve il premio
                 <select
-                  className="mt-1 w-full rounded-md border border-[var(--border)] bg-white px-2 py-2"
+                  className="mt-1 w-full rounded-md border border-[var(--border)] bg-[var(--card)] px-2 py-2"
                   value={payload.bonusCoalitionId ?? ""}
                   onChange={(event) => patch({ bonusCoalitionId: event.target.value || null })}
                 >
@@ -450,7 +506,7 @@ export function SimulatorApp({ initial }: { initial?: SharePayload }) {
         {result ? (
           <ResultsPanel result={result} regionPaint={regionPaint} />
         ) : (
-          <p className="rounded-2xl border border-[var(--border)] bg-white p-4 text-sm">
+          <p className="rounded-2xl border border-[var(--border)] bg-[var(--card)] p-4 text-sm">
             {waitingMunicipal
               ? "In attesa del comune presente nell'archivio aperto."
               : "Non ci sono liste da simulare su questa baseline."}

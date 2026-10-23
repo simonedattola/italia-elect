@@ -7,8 +7,8 @@ Non serve un database. I numeri in `src/data/generated` sono prodotti dallo scri
 ## Cosa fa
 
 - **Archivio** (`/archivio`): Costituente e Camera 1946–2022 dal bollettino compilato, microdati Camera e Senato 2022, europee 2024, regionali Lazio e Lombardia 2023, il comune presente nel CSV del 28 luglio 2024.
-- **Simulatore** (`/simulatore`): politiche con il Rosatellum vigente (seggi proporzionali e uninominali), europee, regionali parametriche, comunali sopra i 15.000 abitanti. Monte Carlo con intervallo 5–95, mappa e emiciclo.
-- **Gioco** (`/gioco`): liste inventate, contro il computer, a livelli. Usa un motore illustrativo diverso dall'archivio.
+- **Simulatore** (`/simulatore`): politiche, regionali e comunali. Lo scenario nazionale di default è la media dei sondaggi pubblicati (Wikipedia, sezione 2026), non il replay del 2022. Europee restano in archivio e nei backtest di riparto, non come consultazione simulabile. Monte Carlo con shock comune, rumore di collegio, scenari e leader.
+- **Gioco** (`/gioco/locale`): due giocatori sullo stesso telefono (ballottaggio, regione, coalizioni, duello a turni, draft), con lo stesso motore. `/gioco` tiene le modalità precedenti.
 - **Link** (`/condividi?s=`): lo scenario sta nel query string, senza account.
 
 La pagina [Metodologia](/metodologia) descrive soglie, Hare, swing uninominale, elasticità e i buchi di copertura.
@@ -44,14 +44,18 @@ Nessuna è obbligatoria. Senza le URL esterne i fattori restano a zero e i sonda
 | `NEWS_API_KEY` | Bearer verso la fonte notizie. |
 | `SOCIAL_API_URL` | JSON `{ "score" }` fra −1 e 1. Senza risposta non c'è un punteggio di riserva. |
 | `SOCIAL_API_KEY` | Bearer verso la fonte social. |
+| `AI_GATEWAY_API_KEY` | Chiave AI Gateway per leggere un nome o un testo di scenario assenti dagli archivi curati. Senza chiave si usa il fallback locale. |
+| `VERCEL_OIDC_TOKEN` | Alternativa alla chiave, sugli ambienti Vercel. |
+| `AI_GATEWAY_MODEL` | Modello da usare. Se manca, si prova `GET /v1/models` e, se non risponde, non c'è chiamata. |
 
-Il gioco non legge queste variabili: la sua serie sondaggi è quella incorporata e illustrativa.
+Lo scenario nazionale non dipende da queste chiavi: i sondaggi stanno in `src/data/polls/published.json`.
 
 ## Dati
 
 ```bash
 npm run data:ingest   # scarica i CSV pubblici e riscrive src/data/generated
 npm run data:map      # opzionale, richiede python3: rigenera la mappa SVG
+npm run data:polls    # riscarica la voce Wikipedia e riscrive src/data/polls/published.json
 ```
 
 L'ingest mette i grezzi in `data/raw/` (gitignorato) e, se il file c'è già, non lo riscarica. Fonti, alla data di scarico 2026-10-23:

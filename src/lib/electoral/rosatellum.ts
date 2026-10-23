@@ -14,6 +14,7 @@
  * I seggi uninominali sono un passaggio a parte (plurality), non questo riparto.
  */
 
+import { sampleNormal } from "@/lib/utils";
 import { COALITION_THRESHOLD, LIST_THRESHOLD, TRANSFER_FLOOR } from "./magnitudes";
 
 export interface ContestList {
@@ -177,14 +178,18 @@ export interface UninominalProjection {
 /**
  * Stima dei collegi uninominali con swing uniforme in punti percentuali
  * rispetto alle quote di lista del collegio, poi plurality sulla coalizione.
- * Il seggio è assegnato alla lista più ampia della coalizione vincente:
- * in legge appartiene al candidato, non alla lista.
+ * Il collegio va alla coalizione. La lista del candidato non è nei dati: se arriva
+ * un rng, il seggio è sorteggiato dentro la coalizione in proporzione alle quote locali.
+ * Senza rng resta alla lista più ampia, ed è dichiarato come convenzione.
  */
 export function projectUninominalSeats(
   colleges: CollegeBaseline[],
   baselineNational: Record<string, number>,
   targetNational: Record<string, number>,
   coalitions: CoalitionDef[],
+  rng?: () => number,
+  /** Scarto del rumore di collegio, in punti percentuali sulla quota di coalizione. */
+  collegioNoiseSd = 0,
 ): { byList: Record<string, number>; detail: UninominalProjection[] } {
   const delta: Record<string, number> = {};
   const ids = new Set([...Object.keys(baselineNational), ...Object.keys(targetNational)]);
@@ -222,15 +227,27 @@ export function projectUninominalSeats(
     let winnerBloc = "";
     let winnerScore = -1;
     for (const [bloc, score] of blocVotes) {
-      if (score > winnerScore || (score === winnerScore && bloc < winnerBloc)) {
+      const noisy = score + (rng && collegioNoiseSd > 0 ? sampleNormal(rng, 0, collegioNoiseSd / 100) : 0);
+      if (noisy > winnerScore || (noisy === winnerScore && bloc < winnerBloc)) {
         winnerBloc = bloc;
-        winnerScore = score;
+        winnerScore = noisy;
       }
     }
     const members = (blocLists.get(winnerBloc) ?? []).sort((a, b) =>
       b.share !== a.share ? b.share - a.share : a.id < b.id ? -1 : 1,
     );
-    const winnerListId = members[0]?.id;
+    let winnerListId = members[0]?.id;
+    if (rng && members.length > 1) {
+      const total = members.reduce((sum, member) => sum + member.share, 0);
+      let ticket = rng() * total;
+      for (const member of members) {
+        ticket -= member.share;
+        if (ticket <= 0) {
+          winnerListId = member.id;
+          break;
+        }
+      }
+    }
     if (!winnerListId) continue;
     byList[winnerListId] = (byList[winnerListId] ?? 0) + 1;
     detail.push({

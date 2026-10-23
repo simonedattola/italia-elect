@@ -1,5 +1,6 @@
 import embeddedPolls from "@/data/polls/polls.json";
 import { aggregatePolls, type PollAggregate, type PollRecord } from "./aggregatePolls";
+import { currentPollMeta, publishedPollRecords } from "./currentScenario";
 
 interface EmbeddedFile {
   note?: string;
@@ -39,8 +40,10 @@ export async function loadPollContext(now = Date.now()): Promise<{
       return { records: fallback, aggregate };
     }
   }
-  const records = illustrativeRecords();
-  return { records, aggregate: aggregatePolls(records, now) };
+  const records = publishedPollRecords();
+  const aggregate = aggregatePolls(records, now);
+  aggregate.note = `${currentPollMeta().note} ${aggregate.note}`;
+  return { records, aggregate };
 }
 
 function illustrativeRecords(): PollRecord[] {

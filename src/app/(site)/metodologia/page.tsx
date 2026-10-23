@@ -101,12 +101,15 @@ export default function MethodologyPage() {
 
       <h2>Liste ipotetiche e candidati</h2>
       <p>
-        Una lista nuova prende voti dalle liste vicine sull&apos;asse sinistra-destra, fino a un tetto del 40%. Descrizione
-        e candidati viaggiano nel link e non spostano i numeri. Il questionario di affinità confronta le risposte con
-        uno schema di posizioni delle liste contemporanee. Quello schema non è un programma ufficiale. Un&apos;affinità alta
-        può aggiungere fino a 2,5 punti con notorietà 100; una bassa può toglierne fino a 4. Il gioco in{" "}
-        <Link href="/gioco">/gioco</Link> ha un altro motore, con sondaggi illustrativi sempre attivi e un riparto
-        semplificato: va letto come partita, non come questo archivio.
+        Una lista nuova prende voti dalle liste vicine sull&apos;asse sinistra-destra, fino a un tetto del 40%. Il questionario
+        di affinità confronta le risposte con uno schema di posizioni, che non è un programma ufficiale. Un nome dell&apos;archivio
+        curato sposta la lista e scrive perché: la coerenza ideologica e la notorietà non sono la stessa cosa del consenso.
+        Per una figura storica di un regime totalitario, o per la riorganizzazione del disciolto partito fascista, il modello
+        mette un tetto molto basso, sposta voti verso le altre liste e mostra la XII disposizione transitoria e finale e la
+        legge 20 giugno 1952, n. 645, quando è quel caso. Non genera simboli. Gli scenari (crisi, scandali, crescita) sono
+        elasticità di issue ownership, con un tetto per lista e un tetto se si impilano. I numeri del 2018 e del 2022 citati
+        nelle note sono scrutini d&apos;archivio, non l&apos;effetto causale dell&apos;evento. La partita in{" "}
+        <Link href="/gioco/locale">/gioco/locale</Link> usa questo motore.
       </p>
 
       <h2>Dati</h2>

@@ -63,7 +63,7 @@ export default function ArchivePage() {
         <h2 className="font-[family-name:var(--font-display)] text-3xl">Cosa non c&apos;è</h2>
         <ul className="mt-4 space-y-3">
           {dataCatalog.gaps.map((gap) => (
-            <li key={gap.level} className="rounded-2xl border border-[var(--border)] bg-white p-4 text-sm">
+            <li key={gap.level} className="rounded-2xl border border-[var(--border)] bg-[var(--card)] p-4 text-sm">
               <p className="font-semibold capitalize">{gap.level}</p>
               <p className="mt-1 text-[var(--muted)]">{gap.detail}</p>
             </li>

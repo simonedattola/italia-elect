@@ -1,13 +1,7 @@
 import type { Metadata } from "next";
-import { Cormorant_Garamond, Source_Sans_3 } from "next/font/google";
+import { Source_Sans_3 } from "next/font/google";
 import { Providers } from "@/components/providers";
 import "./globals.css";
-
-const display = Cormorant_Garamond({
-  variable: "--font-display",
-  subsets: ["latin"],
-  weight: ["500", "600", "700"],
-});
 
 const body = Source_Sans_3({
   variable: "--font-body",
@@ -50,7 +44,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="it">
-      <body className={`${display.variable} ${body.variable} antialiased`}>
+      <head>
+        <link rel="stylesheet" href="https://api.fontshare.com/v2/css?f[]=clash-display@500,600,700&f[]=satoshi@400,500,700&display=swap" />
+      </head>
+      <body className={`${body.variable} antialiased`}>
         <Providers>{children}</Providers>
         <script
           type="application/ld+json"

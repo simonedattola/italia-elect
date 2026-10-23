@@ -18,7 +18,7 @@ export function ResultsPanel({
     <div className="space-y-6">
       <div className="grid gap-3 sm:grid-cols-3">
         {result.coalitions.slice(0, 3).map((coalition) => (
-          <article key={coalition.id} className="rounded-2xl border border-[var(--border)] bg-white p-4">
+          <article key={coalition.id} className="rounded-2xl border border-[var(--border)] bg-[var(--card)] p-4">
             <p className="text-xs uppercase tracking-wide text-[var(--muted)]">{coalition.name}</p>
             <p className="mt-1 font-[family-name:var(--font-display)] text-3xl">{formatPercent(coalition.probability * 100, 0)}</p>
             <p className="text-sm text-[var(--muted)]">
@@ -44,7 +44,7 @@ export function ResultsPanel({
       {regionPaint && regionPaint.length > 0 ? (
         <ItalyRegionsMap caption="Proiezione territoriale sulla media (Senato 2022 più lo swing nazionale)" regions={regionPaint} />
       ) : null}
-      <div className="overflow-x-auto rounded-2xl border border-[var(--border)] bg-white">
+      <div className="overflow-x-auto rounded-2xl border border-[var(--border)] bg-[var(--card)]">
         <table className="w-full min-w-[640px] text-left text-sm">
           <caption className="px-4 py-3 text-left font-semibold">Seggi per lista</caption>
           <thead className="border-y border-[var(--border)] text-xs uppercase tracking-wide text-[var(--muted)]">

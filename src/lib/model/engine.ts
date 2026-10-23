@@ -1,4 +1,6 @@
 import { sampleNormal, createRng, percentile } from "@/lib/utils";
+import { applyScenarioStack } from "@/lib/scenarios/apply";
+import type { ScenarioInput } from "@/lib/scenarios/types";
 import {
   allocateProportional,
   projectUninominalSeats,
@@ -65,6 +67,16 @@ export interface SimulationInput {
   regionalThreshold?: number;
   municipalThreshold?: number;
   municipalMajorityShare?: number;
+  /** Scenari impilati. Intensità 0 non sposta le quote. */
+  scenarios?: ScenarioInput[];
+  /** Effetti di un leader riconosciuto, già calcolati e spiegati a monte. */
+  leaderEffects?: { listId: string; swing?: number; cap?: number; backlash?: number; note: string }[];
+  /** Shock comune correlato all'asse sinistra-destra, in punti. 0 = assente. */
+  commonShockSd?: number;
+  /** Rumore di collegio, in punti sulla quota di coalizione. */
+  collegioNoiseSd?: number;
+  /** Quote nazionali usate come base geografica dello swing. Se assenti, si usano le baseline di lista. */
+  geographyBaseline?: Record<string, number>;
 }
 
 export interface ShareBand {
@@ -263,12 +275,14 @@ function seatBand(ids: ModelList[], samples: number[][], propMeans: number[], un
  */
 function drawShares(
   center: Record<string, number>,
-  lists: { id: string }[],
+  lists: { id: string; ideology?: number }[],
   rng: () => number,
   sigma: number,
+  commonShockSd = 0,
 ): Record<string, number> {
   const drawn: Record<string, number> = {};
-  if (sigma <= 0) {
+  const shock = commonShockSd > 0 ? sampleNormal(rng, 0, commonShockSd) : 0;
+  if (sigma <= 0 && shock === 0) {
     for (const list of lists) drawn[list.id] = center[list.id] ?? 0;
     return renormalize(drawn);
   }
@@ -276,8 +290,9 @@ function drawShares(
   for (const list of lists) {
     const mu = Math.max(0, center[list.id] ?? 0);
     const p = mu / 100;
-    const sd = sigma * (Math.sqrt(p * (1 - p)) / reference);
-    drawn[list.id] = Math.max(0, mu + sampleNormal(rng, 0, sd));
+    const sd = sigma <= 0 ? 0 : sigma * (Math.sqrt(Math.max(p * (1 - p), 0)) / reference);
+    const tilt = shock * (list.ideology ?? 0);
+    drawn[list.id] = Math.max(0, mu + (sd > 0 ? sampleNormal(rng, 0, sd) : 0) + tilt);
   }
   return renormalize(drawn);
 }
@@ -328,6 +343,31 @@ export function prepareBaseline(input: SimulationInput): { lists: ModelList[]; s
       notes.push("L'affinità del candidato sposta la lista indicata prima del sorteggio Monte Carlo.");
     }
   }
+  if (input.scenarios?.length) {
+    const applied = applyScenarioStack(shares, lists, input.scenarios, input.level);
+    shares = applied.shares;
+    notes.push(...applied.notes);
+  }
+  if (input.leaderEffects?.length) {
+    for (const effect of input.leaderEffects) {
+      if (shares[effect.listId] == null) continue;
+      if (effect.swing) shares[effect.listId] += effect.swing;
+      if (effect.cap != null) {
+        const excess = Math.max(0, shares[effect.listId] - effect.cap);
+        shares[effect.listId] = Math.min(shares[effect.listId], effect.cap);
+        const pool = excess + (effect.backlash ?? 0);
+        if (pool > 0) {
+          const leaderIdeology = lists.find((item) => item.id === effect.listId)?.ideology ?? 1;
+          const others = lists.filter((list) => list.id !== effect.listId && (list.ideology ?? 0) * leaderIdeology <= 0);
+          const receivers = others.length ? others : lists.filter((list) => list.id !== effect.listId);
+          const each = pool / Math.max(1, receivers.length);
+          for (const list of receivers) shares[list.id] = (shares[list.id] ?? 0) + each;
+        }
+      }
+      notes.push(effect.note);
+    }
+    shares = renormalize(shares);
+  }
   return { lists, shares, notes };
 }
 
@@ -350,11 +390,13 @@ export function runSimulation(input: SimulationInput): SimulationOutput {
   for (const c of coalitions) majorityHits.set(c.id, 0);
   let majorityThreshold = 0;
 
-  const baselineNational: Record<string, number> = {};
-  for (const list of input.lists) baselineNational[list.id] = list.baseline;
+  const baselineNational: Record<string, number> = { ...(input.geographyBaseline ?? {}) };
+  for (const list of input.lists) {
+    if (baselineNational[list.id] == null) baselineNational[list.id] = input.geographyBaseline ? 0 : list.baseline;
+  }
 
   for (let r = 0; r < runs; r++) {
-    const shares = drawShares(center, lists, rng, input.sigma);
+    const shares = drawShares(center, lists, rng, input.sigma, input.commonShockSd ?? 0);
     for (const list of lists) samples.shares[index.get(list.id)!].push(shares[list.id] ?? 0);
 
     if (input.level === "europee") {
@@ -395,6 +437,8 @@ export function runSimulation(input: SimulationInput): SimulationOutput {
         renormalize(baselineNational),
         shares,
         coalitions.map((c) => ({ id: c.id, listIds: c.listIds })),
+        rng,
+        input.collegioNoiseSd ?? 0,
       );
       addSeats(samples.camera, propAcc, uniAcc, index, proportional.seats, uni.byList);
       const cameraTotal = sumRecord(proportional.seats) + sumRecord(uni.byList);
@@ -428,6 +472,8 @@ export function runSimulation(input: SimulationInput): SimulationOutput {
         renormalize(baselineNational),
         shares,
         coalitions.map((c) => ({ id: c.id, listIds: c.listIds })),
+        rng,
+        input.collegioNoiseSd ?? 0,
       );
       for (const list of lists) {
         const prop = senateSeats[list.id] ?? 0;
@@ -491,7 +537,7 @@ export function runSimulation(input: SimulationInput): SimulationOutput {
     "Monte Carlo: rumore gaussiano con scarto proporzionale a √(p·(1−p)), calibrato sul valore indicato per una lista al 25%, poi rinormalizzato.",
     "Intervallo: 5° e 95° percentile delle estrazioni.",
     input.level === "nazionali"
-      ? "Camera: soglie Rosatellum, Hare e maggiori resti sui 245 seggi proporzionali; uninominali con swing uniforme sui collegi 2022."
+      ? "Camera: soglie Rosatellum, Hare e maggiori resti sui 245 seggi proporzionali. Il collegio uninominale va alla coalizione; la lista del candidato, assente nei dati, è sorteggiata in proporzione alle quote locali. Uno shock comune muove insieme le liste sullo stesso lato dello schema."
       : input.level === "europee"
         ? "Europee: soglia 4% e Hare sui 76 seggi."
         : input.level === "comunali"

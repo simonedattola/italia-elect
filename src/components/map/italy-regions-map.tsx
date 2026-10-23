@@ -25,7 +25,7 @@ export function ItalyRegionsMap({
               key={region.name}
               d={region.d}
               fill={paint?.color ?? "#d6d0c4"}
-              stroke="#f7f3ea"
+              stroke="#091627"
               strokeWidth={1.2}
             >
               <title>{paint ? `${region.name}: ${paint.label}` : `${region.name}: dato assente`}</title>

@@ -3,6 +3,7 @@ import { affinitySwing } from "@/lib/model/affinity";
 import type { SenateRegionBaseline, SimulationInput } from "@/lib/model/engine";
 import type { CollegeBaseline } from "@/lib/electoral/rosatellum";
 import { slugify } from "@/lib/electoral/canonical";
+import { currentNationalLists, currentPollMeta, defaultCommonShockSd } from "@/lib/model/currentScenario";
 import baseline from "@/data/generated/simulator-baseline.json";
 
 function numericVotes(votes: object): Record<string, number> {
@@ -44,9 +45,16 @@ type BaselineList = {
 const COALITION_NAMES = ["centrodestra", "centrosinistra", "terzo"] as const;
 
 export function defaultCoalition(listId: string): string | null {
-  if (["fratelli-ditalia", "lega", "forza-italia", "noi-moderati"].includes(listId)) return "centrodestra";
-  if (["partito-democratico", "avss", "piu-europa", "impegno-civico"].includes(listId)) return "centrosinistra";
+  // Schema degli aggregatori citati a ottobre 2026 (CDX con Sud chiama Nord, CSX con M5S e Italia Viva). Non è un accordo depositato.
+  if (["fratelli-ditalia", "lega", "forza-italia", "noi-moderati", "sud-chiama-nord"].includes(listId)) return "centrodestra";
+  if (["partito-democratico", "avss", "piu-europa", "italia-viva", "movimento-5-stelle", "impegno-civico"].includes(listId)) return "centrosinistra";
   return null;
+}
+
+export function geographyBaselineShares(): Record<string, number> {
+  const shares: Record<string, number> = {};
+  for (const list of mergeLists(baseline.camera.lists)) shares[list.id] = list.percentage;
+  return shares;
 }
 
 export function initialPayload(level: SharePayload["level"] = "nazionali"): SharePayload {
@@ -59,11 +67,13 @@ export function initialPayload(level: SharePayload["level"] = "nazionali"): Shar
     v: 1,
     level,
     baselineId: baselineIdFor(level),
-    seed: 20220925,
-    runs: 1500,
-    sigma: 1.4,
+    seed: 20261023,
+    runs: 800,
+    sigma: 1.6,
     pollWeight: 0,
     usePolls: false,
+    commonShockSd: level === "nazionali" ? defaultCommonShockSd() : 0,
+    collegioNoiseSd: level === "nazionali" ? 7 : 0,
     factors: { economy: 0, security: 0, europe: 0, costOfLiving: 0, social: 0 },
     coalitions,
     region: level === "regionali" ? "Lombardia" : undefined,
@@ -74,7 +84,7 @@ export function baselineIdFor(level: SharePayload["level"]): string {
   if (level === "europee") return "europee-2024";
   if (level === "regionali") return "regionali-2023-lazio-lombardia";
   if (level === "comunali") return "comunali-2024-07-28";
-  return "politiche-camera-2022";
+  return `sondaggi-${currentPollMeta().retrievedAt}`;
 }
 
 export function listsFor(level: SharePayload["level"], region?: string): BaselineList[] {
@@ -83,6 +93,7 @@ export function listsFor(level: SharePayload["level"], region?: string): Baselin
     const found = baseline.regionali.find((item) => item.name === region) ?? baseline.regionali[0];
     return mergeLists(found?.lists ?? []);
   }
+  if (level === "nazionali") return currentNationalLists();
   return mergeLists(baseline.camera.lists);
 }
 
@@ -154,6 +165,21 @@ export function inputFromPayload(
     regionalBonusSeats: payload.regionalBonusSeats,
     regionalBonusCoalitionId: payload.bonusCoalitionId ?? null,
     regionalThreshold: 0.03,
+    scenarios: payload.scenarios,
+    leaderEffects: payload.leader
+      ? [
+          {
+            listId: payload.leader.listId,
+            swing: payload.leader.swing,
+            cap: payload.leader.cap,
+            backlash: payload.leader.backlash,
+            note: [payload.leader.explanation, payload.leader.legalNote, payload.leader.note].filter(Boolean).join(" "),
+          },
+        ]
+      : undefined,
+    commonShockSd: payload.commonShockSd,
+    collegioNoiseSd: payload.collegioNoiseSd,
+    geographyBaseline: payload.level === "nazionali" ? geographyBaselineShares() : undefined,
   };
 }
 
@@ -161,8 +187,7 @@ export function paintRegions(
   targetShares: Record<string, number>,
   lists: { id: string; name: string; color: string; baseline: number }[],
 ): { name: string; color: string; label: string }[] {
-  const baselineShares: Record<string, number> = {};
-  for (const list of lists) baselineShares[list.id] = list.baseline;
+  const baselineShares = geographyBaselineShares();
   return senateRegions.map((region) => {
     const total = Object.values(region.votes).reduce((a, b) => a + b, 0) || 1;
     const projected: Record<string, number> = {};

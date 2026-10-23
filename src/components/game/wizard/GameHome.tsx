@@ -23,6 +23,16 @@ export function GameHome() {
         </p>
       </header>
 
+      <section className="mb-8">
+        <Link href="/gioco/locale" className="hub-card block rounded-2xl p-6">
+          <p className="text-xs uppercase tracking-[0.18em] text-[var(--muted)]">01 · Sullo stesso telefono</p>
+          <h2 className="mt-2 text-2xl font-semibold">Passa il telefono</h2>
+          <p className="mt-2 text-sm leading-relaxed text-[var(--muted)]">
+            Ballottaggio, regione, coalizioni, duello a turni o draft. Due giocatori, schermate di passaggio, spoglio e risultato da condividere.
+          </p>
+        </Link>
+      </section>
+
       <section>
         <h2 className="mb-4 text-center text-xs font-semibold uppercase tracking-[0.2em] text-[var(--muted)]">
           Modalità
