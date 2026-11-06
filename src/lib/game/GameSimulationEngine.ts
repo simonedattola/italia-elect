@@ -132,11 +132,16 @@ export class GameSimulationEngine {
     for (const { player, profile } of resolved) {
       const slug = player.party.slug;
       const base = shares[slug] ?? (player.party.isCustom ? 0.5 : 3);
-      adjusted[slug] = applyCandidateToShare(
-        base,
-        profile,
-        Boolean(player.party.isCustom),
-      );
+      let next = applyCandidateToShare(base, profile, Boolean(player.party.isCustom));
+      if (profile.electoralCap != null) next = Math.min(next, profile.electoralCap);
+      adjusted[slug] = next;
+      if (profile.opponentMobilization && profile.electoralCap != null) {
+        const receivers = ["partito-democratico", "avss", "movimento-5-stelle", "piu-europa", "fratelli-ditalia", "lega"].filter(
+          (id) => id !== slug,
+        );
+        const each = profile.opponentMobilization / receivers.length;
+        for (const id of receivers) adjusted[id] = (adjusted[id] ?? shares[id] ?? 0) + each;
+      }
     }
 
     for (const slug of allSimSlugs) {
@@ -360,6 +365,10 @@ function buildNarrative(
   }
   if (winner.profile.vicePresidentEffect > 0) {
     lines.push(`Il vicepresidente ha contribuito con +${winner.profile.vicePresidentEffect.toFixed(1)}pp.`);
+  }
+  for (const player of players) {
+    if (player.profile.figureExplanation) lines.push(player.profile.figureExplanation);
+    if (player.profile.legalNote) lines.push(player.profile.legalNote);
   }
   const runner = players[1];
   if (runner) {

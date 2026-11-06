@@ -10,6 +10,7 @@ import { parseCandidateName } from "./parseCandidateName";
 import { swingFromVpProfile } from "./vpEffectFormula";
 import type { CandidateGameProfile, GameCandidateInput, GamePartyChoice } from "./types";
 import { clamp } from "@/lib/utils";
+import { assessLeader } from "@/lib/figures/assess";
 
 function recognitionNote(
   isPublic: boolean,
@@ -162,18 +163,26 @@ export class CandidateRecognizer {
       );
     }
 
+    const leader = assessLeader(
+      `${normalizedCandidate.firstName} ${normalizedCandidate.lastName}`,
+      party.slug,
+      party.ideologyScore ?? partyDef.ideologyScore ?? 0,
+    );
+    const recognized = leader.matched;
     return {
-      name: `${normalizedCandidate.firstName} ${normalizedCandidate.lastName}`,
+      name: recognized ? leader.displayName : `${normalizedCandidate.firstName} ${normalizedCandidate.lastName}`,
       firstName: normalizedCandidate.firstName,
       lastName: normalizedCandidate.lastName,
       partySlug: party.slug,
-      popularity: clamp(profile.notoriety, 5, 98),
-      compatibility: clamp(Math.round(compatibility * 10) / 10, 0, 98),
-      ideology: clamp(ideology, -1, 1),
+      popularity: recognized ? clamp(Math.max(profile.notoriety, leader.notoriety), 5, 98) : clamp(profile.notoriety, 5, 98),
+      compatibility: recognized
+        ? clamp(leader.compatibility, 0, 98)
+        : clamp(Math.round(compatibility * 10) / 10, 0, 98),
+      ideology: recognized ? clamp(leader.ideology, -1, 1) : clamp(ideology, -1, 1),
       leadership: profile.leadership,
       mobilization,
-      credibility,
-      isPublicFigure: profile.isPublicFigure,
+      credibility: leader.cap != null ? Math.min(credibility, 20) : credibility,
+      isPublicFigure: recognized || profile.isPublicFigure,
       positionLabel,
       programSummary: hasUserText
         ? campaign.summary
@@ -184,13 +193,17 @@ export class CandidateRecognizer {
       textDepth: campaign.depth,
       textSwingPts,
       campaignImpact,
-      recognitionNote: recognitionNote(
-        profile.isPublicFigure,
-        fig?.canonicalName,
-        fig?.recognitionMethod,
-      ),
+      recognitionNote: recognized
+        ? leader.explanation
+        : recognitionNote(profile.isPublicFigure, fig?.canonicalName, fig?.recognitionMethod),
       vicePresidentEffect: vpEffect,
-      expectedSwingPts,
+      expectedSwingPts: leader.cap != null ? Math.min(expectedSwingPts, -8) : expectedSwingPts,
+      coherence: recognized ? leader.coherence : undefined,
+      deceased: recognized ? leader.deceased : undefined,
+      legalNote: leader.legalNote,
+      figureExplanation: recognized ? leader.explanation : undefined,
+      electoralCap: leader.cap,
+      opponentMobilization: leader.backlash,
     };
   }
 }

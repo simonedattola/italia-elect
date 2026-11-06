@@ -379,6 +379,45 @@ async function testCustomPartySimulation() {
   assert((custom?.percentage ?? 0) >= 8, `Custom party competitivo (got ${custom?.percentage})`);
 }
 
+async function testMussoliniFascistParty() {
+  const player: GamePlayer = {
+    id: "m",
+    displayName: "Caso storico",
+    party: {
+      slug: "lista-controfattuale",
+      name: "Lista controfattuale",
+      color: "#4b5563",
+      ideologyScore: 0.95,
+      isCustom: true,
+    },
+    candidate: {
+      firstName: "Benito",
+      lastName: "Mussolini",
+    },
+    isHuman: true,
+  };
+  const result = await gameSimulationEngine.simulate([player], {
+    mode: "singleplayer",
+    redistributionMode: "all_parties",
+    realPartySlugs: ["partito-democratico", "fratelli-ditalia", "movimento-5-stelle"],
+    seed: 1948,
+  });
+  const row = result.players.find((item) => item.playerId === "m");
+  console.log(`  Mussolini / lista controfattuale → ${row?.percentage}% · nota: ${row?.profile.legalNote?.slice(0, 80)}`);
+  assert(Boolean(row), "Il caso è nel risultato");
+  assert(row!.profile.isPublicFigure, "Mussolini riconosciuto");
+  assert(row!.profile.deceased === true, "Figura storica deceduta");
+  assert((row!.percentage ?? 100) < 2.5, `Consenso molto basso (got ${row!.percentage}%)`);
+  assert((row!.profile.coherence ?? 0) > 70, "La coerenza ideologica resta alta e va detta a parte");
+  assert((row!.profile.compatibility ?? 100) < 20, "La compatibilità elettorale è bassa");
+  assert(/XII/.test(row!.profile.legalNote ?? ""), "C'è la XII disposizione");
+  assert(/Scelba/.test(row!.profile.legalNote ?? ""), "C'è la legge Scelba");
+  assert(/645/.test(row!.profile.legalNote ?? ""), "C'è il numero della legge");
+  const others = result.players.filter((item) => item.playerId !== "m");
+  assert(others.some((item) => item.percentage > row!.percentage), "Gli altri restano più alti");
+  assert(!/duce/i.test(result.narrative), "Il testo non usa appellativi celebrativi");
+}
+
 async function main() {
   console.log("\n=== Italia Elect Game — test suite ===\n");
 
@@ -397,6 +436,7 @@ async function main() {
   await testCustomPartyWorks();
   await testSimulationTextDifference();
   await testComputerHardWinRate();
+  await testMussoliniFascistParty();
 
   console.log("\n✓ Tutti i test game passati\n");
 }
